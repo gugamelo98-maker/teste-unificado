@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Unificado</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#07090f;font-family:system-ui,sans-serif}
+  body{display:flex;flex-direction:column}
+  .nav{display:flex;gap:6px;padding:8px 12px;background:#0d1117;border-bottom:1px solid #1e2d3d;flex-shrink:0}
+  .nav button{background:#131922;border:1px solid #1e2d3d;border-radius:7px;color:#7a9ab8;cursor:pointer;font-size:13px;font-weight:600;padding:9px 16px;transition:all .15s}
+  .nav button:hover{color:#e2e8f0}
+  .nav button.active{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25d366}
+  .frames{flex:1;position:relative}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#07090f}
+  iframe.active{display:block}
+</style>
+</head>
+<body>
+<div class="nav">
+  <button class="active" onclick="show('waba',this)">WABA Manager</button>
+  <button onclick="show('tpl',this)">Template Builder</button>
+  <button onclick="show('ib',this)">Infobip Campanhas</button>
+</div>
+<div class="frames">
+  <iframe id="waba" class="active" src="waba-manager.html"></iframe>
+  <iframe id="tpl" src="template-builder.html"></iframe>
+  <iframe id="ib" src="infobip.html"></iframe>
+</div>
+<script>
+function show(id,btn){
+  document.querySelectorAll('iframe').forEach(f=>f.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
