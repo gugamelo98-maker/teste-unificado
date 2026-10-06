@@ -3,38 +3,3843 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Unificado</title>
+<title>Painel WhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#07090f;font-family:system-ui,sans-serif}
-  body{display:flex;flex-direction:column}
-  .nav{display:flex;gap:6px;padding:8px 12px;background:#0d1117;border-bottom:1px solid #1e2d3d;flex-shrink:0}
-  .nav button{background:#131922;border:1px solid #1e2d3d;border-radius:7px;color:#7a9ab8;cursor:pointer;font-size:13px;font-weight:600;padding:9px 16px;transition:all .15s}
-  .nav button:hover{color:#e2e8f0}
-  .nav button.active{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25d366}
-  .frames{flex:1;position:relative}
-  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#07090f}
-  iframe.active{display:block}
+:root{--bg:#07090f;--s1:#0d1117;--s2:#131922;--border:#1e2d3d;--green:#25d366;--gdim:rgba(37,211,102,.08);--gbdr:rgba(37,211,102,.2);--text:#e2e8f0;--muted:#4a6080;--dim:#7a9ab8;--sidebar:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;display:flex}
+.sidebar{width:var(--sidebar);height:100vh;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:20px 16px 18px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:32px;height:32px;background:var(--gdim);border:1px solid var(--gbdr);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon svg{width:15px;height:15px;fill:var(--green)}
+.sb-logo-text{font-size:13px;font-weight:700;line-height:1.2}
+.sb-logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:0 8px;margin:4px 0 6px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:7px;cursor:pointer;transition:all .15s;font-size:12px;font-weight:500;color:var(--dim);user-select:none;border:1px solid transparent;margin-bottom:4px}
+.sb-item:hover{background:var(--s2);color:var(--text)}
+.sb-item.active{background:var(--gdim);color:var(--green);border-color:var(--gbdr)}
+.sb-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.main{margin-left:var(--sidebar);flex:1;height:100vh;position:relative}
+.main iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#07090f}
+.main iframe.active{display:block}
+@media(max-width:700px){
+  .sidebar{width:56px}
+  .sb-logo-text,.sb-logo-sub,.sb-item span.sb-name,.sb-label{display:none}
+  .sb-item{justify-content:center;padding:10px}
+  .main{margin-left:56px}
+}
 </style>
 </head>
 <body>
-<div class="nav">
-  <button class="active" onclick="show('waba',this)">WABA Manager</button>
-  <button onclick="show('tpl',this)">Template Builder</button>
-  <button onclick="show('ib',this)">Infobip Campanhas</button>
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+    <div>
+      <div class="sb-logo-text">WhatsApp</div>
+      <div class="sb-logo-sub">Painel</div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-label">Menu</div>
+    <div class="sb-item active" id="nav-waba" onclick="show('waba')"><span class="sb-icon">➕</span><span class="sb-name">Criar Waba</span></div>
+    <div class="sb-item" id="nav-tpl" onclick="show('tpl')"><span class="sb-icon">📝</span><span class="sb-name">Template</span></div>
+    <div class="sb-item" id="nav-ib" onclick="show('ib')"><span class="sb-icon">📤</span><span class="sb-name">Campanha</span></div>
+  </div>
+</nav>
+
+<div class="main">
+  <iframe id="f-waba" class="active"></iframe>
+  <iframe id="f-tpl"></iframe>
+  <iframe id="f-ib"></iframe>
 </div>
-<div class="frames">
-  <iframe id="waba" class="active" src="waba-manager.html"></iframe>
-  <iframe id="tpl" src="template-builder.html"></iframe>
-  <iframe id="ib" src="infobip.html"></iframe>
-</div>
+
 <script>
-function show(id,btn){
-  document.querySelectorAll('iframe').forEach(f=>f.classList.remove('active'));
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+var SRC = { waba: 'src-waba', tpl: 'src-tpl', ib: 'src-ib' };
+var extReady = null;
+
+function load(id) {
+  var f = document.getElementById('f-' + id);
+  if (f.dataset.loaded) return;
+  f.dataset.loaded = '1';
+  var raw = document.getElementById(SRC[id]).textContent.replace(/<\\\/script>/g, '<' + '/script>');
+  f.srcdoc = raw;
 }
+
+function show(id) {
+  load(id);
+  ['waba', 'tpl', 'ib'].forEach(function (k) {
+    document.getElementById('f-' + k).classList.toggle('active', k === id);
+    document.getElementById('nav-' + k).classList.toggle('active', k === id);
+  });
+}
+
+// Ponte para a extensão do Chrome (a extensão fala com a página principal)
+document.getElementById('f-waba').addEventListener('load', function () {
+  var wc = this.contentWindow;
+  try {
+    wc.addEventListener('message', function (e) {
+      var d = e.data;
+      if (d && d.source === 'waba-manager') window.postMessage(d, '*');
+    });
+    if (extReady) wc.postMessage(extReady, '*');
+  } catch (err) {}
+});
+
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || typeof d !== 'object') return;
+  var wc = document.getElementById('f-waba').contentWindow;
+  if (e.source === window && d.source === 'waba-extension') {
+    if (d.action === 'EXTENSION_READY' || d.action === 'FB_LOGIN_STATUS') extReady = d;
+    if (wc) wc.postMessage(d, '*');
+  }
+});
+
+show('waba');
 </script>
+
+<!-- ============ SITE 1: WABA MANAGER (Criar Waba) ============ -->
+<script type="text/html" id="src-waba"><!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WABA Manager</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2d3048;
+    --border-hover: #4a4f7a;
+    --fg: #e8eaf6;
+    --fg-muted: #8b90b8;
+    --accent: #6c63ff;
+    --accent-hover: #7c74ff;
+    --accent-dim: rgba(108, 99, 255, 0.15);
+    --green: #4caf8e;
+    --green-dim: rgba(76, 175, 142, 0.12);
+    --red: #e05c6e;
+    --red-dim: rgba(224, 92, 110, 0.12);
+    --yellow: #e8b84b;
+    --yellow-dim: rgba(232, 184, 75, 0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 24px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+
+  .logo-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    color: var(--accent);
+  }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-dim);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-header-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: var(--accent);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .card-subtitle {
+    font-size: 12px;
+    color: var(--fg-muted);
+    margin-top: 1px;
+  }
+
+  .card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  label .required {
+    color: var(--red);
+    margin-left: 2px;
+  }
+
+  input, textarea, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--fg-muted);
+    opacity: 0.6;
+  }
+
+  textarea {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 140px;
+    line-height: 1.5;
+  }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--fg-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .hint svg {
+    width: 13px;
+    height: 13px;
+    fill: var(--fg-muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .row .field {
+    flex: 1;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%238b90b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+  }
+
+  select option {
+    background: var(--surface2);
+  }
+
+  .btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 20px;
+    width: 100%;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:active:not(:disabled) { transform: scale(0.99); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn svg { width: 16px; height: 16px; fill: white; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    margin-top: -4px;
+  }
+  .btn-ghost svg { fill: var(--fg-muted); }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface2); border-color: var(--border-hover); color: var(--fg); }
+  .btn-ghost:hover svg { fill: var(--fg); }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Result card */
+  .result {
+    width: 100%;
+    max-width: 640px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: none;
+  }
+
+  .result.show { display: block; }
+
+  .result-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .result-header svg {
+    width: 18px; height: 18px;
+    flex-shrink: 0;
+  }
+
+  .result.success .result-header {
+    background: var(--green-dim);
+    color: var(--green);
+    border-bottom: 1px solid rgba(76,175,142,0.2);
+  }
+
+  .result.success .result-header svg { fill: var(--green); }
+
+  .result.error .result-header {
+    background: var(--red-dim);
+    color: var(--red);
+    border-bottom: 1px solid rgba(224,92,110,0.2);
+  }
+
+  .result.error .result-header svg { fill: var(--red); }
+
+  .result.warning .result-header {
+    background: var(--yellow-dim);
+    color: var(--yellow);
+    border-bottom: 1px solid rgba(232,184,75,0.2);
+  }
+
+  .result.warning .result-header svg { fill: var(--yellow); }
+
+  .result-body {
+    background: var(--surface);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .waba-id-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+
+  .waba-id-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .waba-id-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--green);
+    flex: 1;
+    word-break: break-all;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--fg-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 5px 10px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .raw-toggle {
+    background: none;
+    border: none;
+    color: var(--fg-muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+  }
+
+  .raw-toggle:hover { color: var(--fg); }
+  .raw-toggle svg { width: 12px; height: 12px; fill: currentColor; transition: transform 0.2s; }
+  .raw-toggle.open svg { transform: rotate(90deg); }
+
+  .raw-json {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--fg-muted);
+    overflow-x: auto;
+    white-space: pre;
+    max-height: 300px;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+
+  .raw-json.show { display: block; }
+
+  /* Webhook info */
+  .webhook-pill {
+    width: 100%;
+    max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--fg-muted);
+    font-family: 'JetBrains Mono', monospace;
+    overflow: hidden;
+  }
+
+  .webhook-pill-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .webhook-url {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--fg);
+    font-size: 11px;
+  }
+
+  .qty-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .qty-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--fg);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 500;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1;
+    padding-bottom: 1px;
+  }
+  .qty-btn:hover { background: var(--border); border-color: var(--border-hover); }
+
+  #qty {
+    width: 52px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    padding: 8px 4px;
+    flex-shrink: 0;
+    -moz-appearance: textfield;
+  }
+  #qty::-webkit-inner-spin-button,
+  #qty::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .qty-hint {
+    font-size: 11px;
+    color: var(--fg-muted);
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+  }
+
+  /* Multi result list */
+  .multi-result {
+    width: 100%;
+    max-width: 640px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .multi-result.show { display: flex; }
+
+  .multi-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .multi-item-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-muted);
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .multi-item-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--fg);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .multi-item-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    cursor: pointer;
+  }
+  .multi-item-id:hover { text-decoration: underline; }
+  .multi-item-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-ok { background: var(--green-dim); color: var(--green); }
+  .badge-err { background: var(--red-dim); color: var(--red); }
+  .badge-wait { background: var(--yellow-dim); color: var(--yellow); }
+
+  .multi-header {
+    width: 100%;
+    max-width: 640px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--fg-muted);
+    padding: 0 2px;
+  }
+  .multi-header.show { display: flex; }
+
+  /* Tabs */
+  .tabs {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px;
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: calc(var(--radius) - 3px);
+    color: var(--fg-muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 12px;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  .tab-btn svg { width: 15px; height: 15px; fill: currentColor; }
+  .tab-btn:hover { background: var(--surface2); color: var(--fg); }
+  .tab-btn.active { background: var(--accent); color: white; }
+  .tab-btn.active svg { fill: white; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: contents; }
+
+  /* Phone result */
+  .phone-id-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .phone-id-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .phone-id-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--accent);
+    flex: 1;
+    word-break: break-all;
+  }
+
+  /* Em Massa */
+  .waba-row {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .waba-row.selected { border-color: var(--yellow); background: rgba(232,184,75,0.06); }
+  .waba-row input[type="checkbox"] { width:16px; height:16px; accent-color: var(--yellow); cursor:pointer; flex-shrink:0; }
+  .waba-row-info { flex:1; min-width:0; }
+  .waba-row-name { font-size:13px; font-weight:600; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .waba-row-id { font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--fg-muted); }
+  .waba-row-phone { width:160px; flex-shrink:0; }
+  .waba-row-phone input { padding:7px 10px; font-size:13px; }
+
+  .m-result-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .m-result-item.ok { border-color: rgba(76,175,142,0.4); }
+  .m-result-item.err { border-color: rgba(224,92,110,0.4); }
+  .m-result-top { display:flex; align-items:center; gap:10px; }
+  .m-result-name { flex:1; font-weight:600; font-size:13px; color:var(--fg); }
+  .m-result-phone { font-size:12px; color:var(--fg-muted); font-family:'JetBrains Mono',monospace; }
+  .m-sms-row { display:flex; align-items:center; gap:8px; }
+  .m-sms-row input { flex:1; padding:7px 10px; font-size:16px; font-family:'JetBrains Mono',monospace; letter-spacing:4px; text-align:center; font-weight:700; }
+  .m-sms-btn { background:var(--accent); border:none; border-radius:var(--radius-sm); color:white; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; padding:8px 14px; white-space:nowrap; transition:background 0.15s; }
+  .m-sms-btn:hover { background:var(--accent-hover); }
+  .m-sms-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .m-sms-status { font-size:12px; padding:4px 10px; border-radius:20px; font-weight:600; white-space:nowrap; }
+  .m-sms-ok { background:var(--green-dim); color:var(--green); }
+  .m-sms-err { background:var(--red-dim); color:var(--red); }
+
+  @media (max-width: 440px) {
+    body { padding: 20px 12px; }
+    .card-body { padding: 18px; }
+    .row { flex-direction: column; }
+    .qty-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo-bar">
+  <div class="logo-icon">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </div>
+  <span class="logo-text">WABA <span>Manager</span></span>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab-criar" onclick="switchTab('criar')">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    Criar WABA
+  </button>
+  <button class="tab-btn" id="tab-phone" onclick="switchTab('phone')">
+    <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+    Adicionar Número (Unitário)
+  </button>
+  <button class="tab-btn" id="tab-massa" onclick="switchTab('massa')">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    Em Massa
+  </button>
+  <button class="tab-btn" id="tab-facebook" onclick="switchTab('facebook')">
+    <svg viewBox="0 0 24 24"><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06c0 5.02 3.68 9.17 8.44 9.93v-7.03H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7.03C18.32 21.23 22 17.08 22 12.06c0-5.53-4.5-10.02-10-10.02z"/></svg>
+    Facebook
+  </button>
+</div>
+
+<!-- ===== TAB CRIAR WABA ===== -->
+<div class="tab-panel active" id="panel-criar">
+
+<div class="webhook-pill">
+  <div class="webhook-pill-dot"></div>
+  <span class="webhook-url">https://rarelookingorca-n8n.cloudfy.live/webhook/waba-create-meta</span>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Criar WABA</div>
+      <div class="card-subtitle">Cria uma nova WABA no Meta Business Suite</div>
+    </div>
+  </div>
+
+  <form class="card-body" onsubmit="return false;">
+    <div class="field">
+      <label>Sessão Facebook</label>
+      <div id="waba-session-status" style="padding:10px 14px; border-radius:var(--radius-sm); background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:13px;">
+        <div id="waba-session-dot" style="width:9px;height:9px;border-radius:50%;background:var(--fg-muted);flex-shrink:0;"></div>
+        <span id="waba-session-text" style="color:var(--fg-muted);">Nenhuma sessão conectada — vá até a aba Facebook para conectar</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Business ID <span class="required">*</span></label>
+        <input id="business_id" type="text" placeholder="803068770186829" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Fuso Horário</label>
+        <select id="timezone_id">
+          <option value="25" selected>America/São Paulo (25)</option>
+          <option value="1">America/New_York (1)</option>
+          <option value="2">America/Chicago (2)</option>
+          <option value="3">America/Denver (3)</option>
+          <option value="4">America/Los_Angeles (4)</option>
+          <option value="5">America/Anchorage (5)</option>
+          <option value="6">Pacific/Honolulu (6)</option>
+          <option value="24">America/Manaus (24)</option>
+          <option value="26">America/Fortaleza (26)</option>
+          <option value="27">America/Noronha (27)</option>
+          <option value="65">Europe/Lisbon (65)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nome da WABA <span class="required">*</span></label>
+      <input id="waba_name" type="text" placeholder="Ex: Atendimento, Suporte, Marketing..." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Quantidade</label>
+      <div class="qty-row">
+        <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+        <input id="qty" type="number" min="1" max="20" value="1" readonly>
+        <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+        <span class="qty-hint">Todas as WABAs serão criadas com o mesmo nome em paralelo.</span>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="criarWABA()">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      Criar WABA
+    </button>
+    <button class="btn btn-ghost" id="testBtn" onclick="testarSemCookie()">
+      <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      Testar sem cookie
+    </button>
+  </form>
+</div>
+
+<!-- Multi result -->
+<div class="multi-header" id="multi-header">
+  <span id="multi-summary"></span>
+</div>
+<div class="multi-result" id="multi-result"></div>
+
+<!-- Single Result -->
+<div class="result" id="result">
+  <div class="result-header" id="result-header">
+    <svg id="result-icon" viewBox="0 0 24 24"></svg>
+    <span id="result-title"></span>
+  </div>
+  <div class="result-body">
+    <div class="waba-id-row" id="waba-id-row" style="display:none">
+      <span class="waba-id-label">WABA ID</span>
+      <span class="waba-id-value" id="waba-id-value"></span>
+      <button class="copy-btn" id="copy-btn" onclick="copyWabaId()">Copiar</button>
+    </div>
+    <div id="result-message" style="font-size:13px;color:var(--fg-muted);line-height:1.6;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button class="raw-toggle" id="raw-toggle" onclick="toggleRaw()">
+        <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        Ver resposta completa
+      </button>
+    </div>
+    <pre class="raw-json" id="raw-json"></pre>
+  </div>
+</div>
+
+</div><!-- /panel-criar -->
+
+<!-- ===== TAB ADICIONAR NÚMERO ===== -->
+<div class="tab-panel" id="panel-phone">
+
+<div class="webhook-pill">
+  <div class="webhook-pill-dot"></div>
+  <span class="webhook-url">https://rarelookingorca-n8n.cloudfy.live/webhook/waba-add-phone</span>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-icon" style="background:rgba(76,175,142,0.15)">
+      <svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Adicionar Número à WABA</div>
+      <div class="card-subtitle">Cria o número e solicita o código SMS de verificação</div>
+    </div>
+  </div>
+
+  <form class="card-body" onsubmit="return false;">
+    <div id="ph-session-status" style="padding:10px 14px; border-radius:var(--radius-sm); background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:13px;">
+      <div id="ph-session-dot" style="width:9px;height:9px;border-radius:50%;background:var(--fg-muted);flex-shrink:0;"></div>
+      <span id="ph-session-text" style="color:var(--fg-muted);">Nenhuma sessão Facebook conectada — vá até a aba Facebook para conectar</span>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Business ID <span class="required">*</span></label>
+        <input id="ph-business_id" type="text" placeholder="803068770186829" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Graph API Token <span class="required">*</span></label>
+        <input id="ph-graph-token" type="text" placeholder="EAAhCDcA..." autocomplete="off" spellcheck="false" style="font-size:11px;">
+      </div>
+    </div>
+
+    <div class="field">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <label style="margin:0">WABA sem número <span class="required">*</span></label>
+        <button type="button" id="fetch-wabas-btn" onclick="buscarWABAs()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--fg-muted);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;display:flex;align-items:center;gap:5px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--fg-muted)'">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Buscar WABAs
+        </button>
+      </div>
+      <select id="ph-waba_select" style="display:none">
+        <option value="">Selecione uma WABA...</option>
+      </select>
+      <div id="ph-waba-status" style="font-size:12px;color:var(--fg-muted);padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px;">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--fg-muted);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        Preencha o Business ID e o Token, depois clique em "Buscar WABAs"
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Número de Telefone <span class="required">*</span></label>
+        <input id="ph-phone_number" type="text" placeholder="5548992215602" autocomplete="off" spellcheck="false">
+        <div class="hint" style="margin-top:4px">
+          <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+          Com DDI e DDD, sem + ou espaços
+        </div>
+      </div>
+      <div class="field">
+        <label>Nome de Exibição</label>
+        <input id="ph-display_name" type="text" placeholder="Atendimento" autocomplete="off">
+      </div>
+    </div>
+
+    <button class="btn" id="phoneBtn" onclick="adicionarNumero()" style="background:var(--green);--accent-hover:#3d9e7a">
+      <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      Adicionar e Solicitar SMS
+    </button>
+  </form>
+</div>
+
+<!-- SMS Verify Block -->
+<div class="card" id="sms-verify-card" style="display:none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim);">
+  <div class="card-header">
+    <div class="card-header-icon" style="background:var(--accent-dim)">
+      <svg viewBox="0 0 24 24" style="fill:var(--accent)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Verificar código SMS</div>
+      <div class="card-subtitle" id="sms-subtitle">Digite o código recebido no número</div>
+    </div>
+  </div>
+  <form class="card-body" onsubmit="return false;" style="gap:12px">
+    <div class="field">
+      <label>Código SMS <span class="required">*</span></label>
+      <input id="sms-code" type="text" placeholder="123456" maxlength="8" autocomplete="one-time-code" spellcheck="false" style="font-size:22px;font-family:'JetBrains Mono',monospace;letter-spacing:6px;text-align:center;font-weight:700;">
+    </div>
+    <button class="btn" id="verifyBtn" onclick="verificarSMS()" style="background:var(--accent)">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      Verificar e Ativar Número
+    </button>
+  </form>
+</div>
+
+<!-- SMS Verify Result -->
+<div class="result" id="sms-result" style="display:none">
+  <div class="result-header" id="sms-result-header">
+    <svg id="sms-result-icon" viewBox="0 0 24 24"></svg>
+    <span id="sms-result-title"></span>
+  </div>
+  <div class="result-body">
+    <div id="sms-result-message" style="font-size:13px;color:var(--fg-muted);line-height:1.6;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button class="raw-toggle" id="sms-raw-toggle" onclick="toggleSmsRaw()">
+        <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        Ver resposta completa
+      </button>
+    </div>
+    <pre class="raw-json" id="sms-raw-json"></pre>
+  </div>
+</div>
+
+<!-- Phone Result -->
+<div class="result" id="ph-result">
+  <div class="result-header" id="ph-result-header">
+    <svg id="ph-result-icon" viewBox="0 0 24 24"></svg>
+    <span id="ph-result-title"></span>
+  </div>
+  <div class="result-body">
+    <div class="phone-id-row" id="ph-id-row" style="display:none">
+      <span class="phone-id-label">Phone ID</span>
+      <span class="phone-id-value" id="ph-id-value"></span>
+      <button class="copy-btn" id="ph-copy-btn" onclick="copyPhoneId()">Copiar</button>
+    </div>
+    <div id="ph-result-message" style="font-size:13px;color:var(--fg-muted);line-height:1.6;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button class="raw-toggle" id="ph-raw-toggle" onclick="togglePhoneRaw()">
+        <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        Ver resposta completa
+      </button>
+    </div>
+    <pre class="raw-json" id="ph-raw-json"></pre>
+  </div>
+</div>
+
+</div><!-- /panel-phone -->
+
+<!-- ===== TAB EM MASSA ===== -->
+<div class="tab-panel" id="panel-massa">
+
+<div class="webhook-pill">
+  <div class="webhook-pill-dot"></div>
+  <span class="webhook-url">https://rarelookingorca-n8n.cloudfy.live/webhook/waba-add-phone</span>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-icon" style="background:rgba(232,184,75,0.15)">
+      <svg viewBox="0 0 24 24" style="fill:var(--yellow)"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Adicionar Números em Massa</div>
+      <div class="card-subtitle">Selecione WABAs e atribua um número pra cada</div>
+    </div>
+  </div>
+
+  <form class="card-body" onsubmit="return false;">
+    <div class="field">
+      <label>Sessão Facebook</label>
+      <div id="massa-session-status" style="padding:10px 14px; border-radius:var(--radius-sm); background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:13px;">
+        <div id="massa-session-dot" style="width:9px;height:9px;border-radius:50%;background:var(--fg-muted);flex-shrink:0;"></div>
+        <span id="massa-session-text" style="color:var(--fg-muted);">Nenhuma sessão conectada — vá até a aba Facebook para conectar</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Business ID <span class="required">*</span></label>
+        <input id="m-business_id" type="text" placeholder="803068770186829" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Graph API Token <span class="required">*</span></label>
+        <input id="m-graph-token" type="text" placeholder="EAAhCDcA..." autocomplete="off" spellcheck="false" style="font-size:11px;">
+      </div>
+    </div>
+
+    <div class="field">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <label style="margin:0">WABAs disponíveis</label>
+        <button type="button" id="m-fetch-btn" onclick="massaBuscarWABAs()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--fg-muted);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;display:flex;align-items:center;gap:5px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--fg-muted)'">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Buscar WABAs
+        </button>
+      </div>
+      <div id="m-waba-status" style="font-size:12px;color:var(--fg-muted);padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px;">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--fg-muted);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        Preencha os campos acima e clique em "Buscar WABAs"
+      </div>
+      <div id="m-waba-list" style="display:none; flex-direction:column; gap:8px; margin-top:8px;"></div>
+    </div>
+
+    <button class="btn" id="m-submit-btn" onclick="massaDisparar()" disabled style="background:var(--yellow);color:#1a1208;opacity:0.5">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      Disparar Todos
+    </button>
+  </form>
+</div>
+
+<!-- Massa result list -->
+<div id="m-result-list" style="display:none; flex-direction:column; gap:8px; width:100%; max-width:640px;"></div>
+
+</div><!-- /panel-massa -->
+
+<!-- ===== TAB FACEBOOK ===== -->
+<div class="tab-panel" id="panel-facebook">
+
+<!-- STATUS DA SESSÃO -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-header-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06c0 5.02 3.68 9.17 8.44 9.93v-7.03H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7.03C18.32 21.23 22 17.08 22 12.06c0-5.53-4.5-10.02-10-10.02z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Sessão Meta Business</div>
+      <div class="card-subtitle">Status da sessão capturada pela extensão</div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="fb-status-box" style="padding:12px 14px; border-radius:var(--radius-sm); background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+      <div id="fb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--fg-muted);flex-shrink:0;"></div>
+      <div style="flex:1">
+        <div id="fb-status-text" style="font-size:13px;font-weight:600;color:var(--fg-muted);">Nenhuma sessão salva</div>
+        <div id="fb-status-sub" style="font-size:11px;color:var(--fg-muted);margin-top:2px;"></div>
+      </div>
+      <button onclick="fbLimpar()" id="fb-btn-limpar" style="display:none;width:auto;padding:6px 12px;font-size:12px;" class="btn btn-ghost">Desconectar</button>
+    </div>
+
+    <!-- Campo Business ID -->
+    <div class="field" id="fb-business-field">
+      <label>Business ID <span class="required">*</span></label>
+      <input id="fb-business-id" type="text" placeholder="Ex: 2081168489202891" autocomplete="off" spellcheck="false">
+      <div class="hint">
+        <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+        Encontre na URL do Meta Business Suite: <em>business_id=<strong>XXXXXXXXX</strong></em>
+      </div>
+    </div>
+
+    <!-- Botão capturar via extensão (aparece quando extensão está instalada) -->
+    <div id="fb-ext-actions" style="display:none; flex-direction:column; gap:8px;">
+      <button class="btn" onclick="fbCapturarViaExtensao()" id="fb-btn-capturar">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        Capturar Sessão Facebook
+      </button>
+      <button class="btn btn-ghost" onclick="window.open('https://business.facebook.com/latest/settings/whatsapp_account','_blank')" style="width:auto;font-size:12px;">
+        Abrir Meta Business Suite ↗
+      </button>
+    </div>
+
+    <!-- Estado: extensão não instalada -->
+    <div id="fb-no-ext" style="display:none;">
+      <div class="hint" style="border-color:var(--yellow);background:var(--yellow-dim);color:var(--fg);">
+        <svg viewBox="0 0 24 24" style="fill:var(--yellow)"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+        Extensão não detectada. Instale a extensão abaixo para capturar a sessão automaticamente.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALAR EXTENSÃO -->
+<div class="card" id="fb-install-card">
+  <div class="card-header">
+    <div class="card-header-icon" style="background:var(--green-dim)">
+      <svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Instalar Extensão Chrome</div>
+      <div class="card-subtitle">Instalação em modo desenvolvedor — 3 passos simples</div>
+    </div>
+  </div>
+  <div class="card-body">
+
+    <!-- Passo a passo -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Baixe a extensão</div>
+          <button class="btn" onclick="fbBaixarExtensao()" style="width:auto;padding:8px 16px;font-size:13px;">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Baixar fb-extension.zip
+          </button>
+          <div style="font-size:11px;color:var(--fg-muted);margin-top:6px;">Salve o arquivo e extraia (descompacte) em uma pasta.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Abra as extensões do Chrome</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <code id="ext-url" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'JetBrains Mono',monospace;flex:1;">chrome://extensions</code>
+            <button class="btn btn-ghost" onclick="navigator.clipboard.writeText('chrome://extensions').then(()=>{this.textContent='✓ Copiado';setTimeout(()=>this.textContent='Copiar',2000)})" style="width:auto;padding:8px 14px;font-size:12px;flex-shrink:0;">Copiar</button>
+          </div>
+          <div style="font-size:11px;color:var(--fg-muted);margin-top:6px;">Cole na barra de endereço do Chrome e pressione Enter. Ative o <strong>Modo desenvolvedor</strong> (toggle no canto superior direito).</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Carregue a extensão</div>
+          <div style="font-size:12px;color:var(--fg-muted);line-height:1.6;">
+            Clique em <strong>"Carregar sem compactação"</strong> e selecione a <strong>pasta</strong> que você extraiu no passo 1.<br>
+            A extensão aparecerá na lista com o nome <em>"WABA Manager - Sessão Facebook"</em>.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:16px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--fg-muted);">
+      Após instalar, recarregue esta página. A extensão será detectada automaticamente e o botão "Capturar Sessão" aparecerá acima.
+    </div>
+  </div>
+</div>
+
+</div><!-- /panel-facebook -->
+
+<script>
+const WEBHOOK = 'https://rarelookingorca-n8n.cloudfy.live/webhook/waba-create-meta';
+const WEBHOOK_NOCOOKIE = 'https://rarelookingorca-n8n.cloudfy.live/webhook/waba-test-nocookie';
+const WEBHOOK_PHONE = 'https://rarelookingorca-n8n.cloudfy.live/webhook/waba-add-phone';
+const WEBHOOK_VERIFY = 'https://rarelookingorca-n8n.cloudfy.live/webhook/waba-verify-sms';
+
+// ===== FACEBOOK SESSION =====
+function getFbSession() {
+  try {
+    const saved = localStorage.getItem('fb_session');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function updateSessionIndicators() {
+  const sess = getFbSession();
+  const indicators = [
+    { dot: 'waba-session-dot', text: 'waba-session-text' },
+    { dot: 'ph-session-dot',   text: 'ph-session-text'   },
+    { dot: 'massa-session-dot',text: 'massa-session-text' },
+  ];
+  indicators.forEach(({ dot, text }) => {
+    const dotEl  = document.getElementById(dot);
+    const textEl = document.getElementById(text);
+    if (!dotEl || !textEl) return;
+    if (sess) {
+      dotEl.style.background  = 'var(--green)';
+      textEl.style.color      = 'var(--green)';
+      textEl.textContent      = 'Sessão Facebook ativa — salva em ' + new Date(sess.savedAt).toLocaleString('pt-BR');
+    } else {
+      dotEl.style.background  = 'var(--fg-muted)';
+      textEl.style.color      = 'var(--fg-muted)';
+      textEl.textContent      = 'Nenhuma sessão conectada — vá até a aba Facebook para conectar';
+    }
+  });
+}
+
+let _fbExtensaoInstalada = false;
+
+function fbInit() {
+  // Verifica sessão salva
+  try {
+    const saved = localStorage.getItem('fb_session');
+    if (saved) {
+      const data = JSON.parse(saved);
+      document.getElementById('fb-status-dot').style.background = 'var(--green)';
+      document.getElementById('fb-status-text').style.color = 'var(--green)';
+      document.getElementById('fb-status-text').textContent = 'Sessão ativa — Business ID: ' + (data.businessId || data.userId || 'capturada');
+      document.getElementById('fb-status-sub').textContent = 'Salva em: ' + new Date(data.savedAt).toLocaleString('pt-BR');
+      document.getElementById('fb-btn-limpar').style.display = 'block';
+      // Restaura o business_id no campo e nas outras abas
+      if (data.businessId) {
+        document.getElementById('fb-business-id').value = data.businessId;
+        fbPreencherBusinessIds(data.businessId);
+      }
+    }
+  } catch(e) {}
+  updateSessionIndicators();
+
+  // Detecta extensão via postMessage
+  fbDetectarExtensao();
+}
+
+function fbDetectarExtensao() {
+  // Escuta resposta da extensão
+  const handler = (event) => {
+    if (!event.data || event.data.source !== 'waba-extension') return;
+    if (event.data.action === 'EXTENSION_READY' || event.data.action === 'FB_COOKIES_RESULT' || event.data.action === 'FB_LOGIN_STATUS') {
+      _fbExtensaoInstalada = true;
+      document.getElementById('fb-ext-actions').style.display = 'flex';
+      document.getElementById('fb-no-ext').style.display = 'none';
+      document.getElementById('fb-install-card').style.display = 'none';
+    }
+    if (event.data.action === 'FB_COOKIES_RESULT') {
+      fbSalvarSessao(event.data.data);
+    }
+  };
+  window.addEventListener('message', handler);
+
+  // Pinga a extensão — content.js já enviou EXTENSION_READY no load
+  // Aguarda 1.5s; se não chegou, mostra aviso de "instalar"
+  setTimeout(() => {
+    if (!_fbExtensaoInstalada) {
+      document.getElementById('fb-no-ext').style.display = 'block';
+      document.getElementById('fb-ext-actions').style.display = 'none';
+    }
+  }, 1500);
+}
+
+function fbCapturarViaExtensao() {
+  if (!_fbExtensaoInstalada) return;
+
+  const businessId = document.getElementById('fb-business-id').value.trim();
+  if (!businessId) {
+    document.getElementById('fb-business-id').focus();
+    document.getElementById('fb-business-id').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('fb-business-id').style.borderColor = '', 2000);
+    return;
+  }
+
+  const btn = document.getElementById('fb-btn-capturar');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Capturando...';
+
+  window.postMessage({ source: 'waba-manager', action: 'GET_FB_COOKIES', businessId }, '*');
+
+  setTimeout(() => {
+    if (btn.disabled) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg> Capturar Sessão Facebook';
+    }
+  }, 5000);
+}
+
+function fbSalvarSessao(data) {
+  const btn = document.getElementById('fb-btn-capturar');
+  const resetBtn = () => {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg> Atualizar Sessão'; }
+  };
+
+  if (!data || !data.success) {
+    alert('Não foi possível capturar a sessão. Verifique se você está logado no Facebook/Meta Business Suite.');
+    resetBtn();
+    return;
+  }
+
+  // Inclui o business_id informado pelo usuário
+  const businessId = document.getElementById('fb-business-id').value.trim();
+  data.businessId = businessId;
+
+  try { localStorage.setItem('fb_session', JSON.stringify(data)); } catch(e) {}
+
+  document.getElementById('fb-status-dot').style.background = 'var(--green)';
+  document.getElementById('fb-status-text').style.color = 'var(--green)';
+  document.getElementById('fb-status-text').textContent = 'Sessão ativa — Business ID: ' + businessId;
+  document.getElementById('fb-status-sub').textContent = 'Capturada em: ' + new Date(data.savedAt).toLocaleString('pt-BR');
+  document.getElementById('fb-btn-limpar').style.display = 'block';
+
+  resetBtn();
+  fbPreencherBusinessIds(businessId);
+  updateSessionIndicators();
+}
+
+function fbPreencherBusinessIds(businessId) {
+  // Preenche automaticamente o campo business_id nas outras abas
+  ['business_id', 'ph-business_id', 'm-business_id'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = businessId;
+  });
+}
+
+function fbLimpar() {
+  localStorage.removeItem('fb_session');
+  document.getElementById('fb-status-dot').style.background = 'var(--fg-muted)';
+  document.getElementById('fb-status-text').style.color = 'var(--fg-muted)';
+  document.getElementById('fb-status-text').textContent = 'Nenhuma sessão salva';
+  document.getElementById('fb-status-sub').textContent = '';
+  document.getElementById('fb-btn-limpar').style.display = 'none';
+  updateSessionIndicators();
+}
+
+function fbBaixarExtensao() {
+  // Link para o ZIP hospedado no GitHub junto com o projeto
+  window.open('https://github.com/gugamelo98-maker/teste-criar-waba/raw/main/fb-extension.zip', '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', fbInit);
+// ===== FIM FACEBOOK SESSION =====
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function changeQty(delta) {
+  const input = document.getElementById('qty');
+  const val = Math.min(20, Math.max(1, parseInt(input.value) + delta));
+  input.value = val;
+}
+
+async function criarWABA() {
+  const fbSession   = getFbSession();
+  const cookies     = fbSession ? fbSession.cookies : '';
+  const business_id = document.getElementById('business_id').value.trim();
+  const waba_name   = document.getElementById('waba_name').value.trim();
+  const timezone_id = parseInt(document.getElementById('timezone_id').value);
+  const qty         = Math.min(20, Math.max(1, parseInt(document.getElementById('qty').value) || 1));
+
+  if (!cookies) {
+    showResult('error', 'Sessão Facebook não encontrada', 'Vá até a aba Facebook e faça login para capturar a sessão antes de continuar.', null, null);
+    return;
+  }
+  if (!business_id || !waba_name) {
+    showResult('error', 'Campos obrigatórios', 'Preencha o Business ID e o nome da WABA.', null, null);
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> Criando ${qty} WABA${qty > 1 ? 's' : ''}...`;
+
+  hideResult();
+  hideMultiResult();
+
+  if (qty === 1) {
+    // fluxo simples
+    try {
+      const resp = await fetch(WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cookies, business_id, waba_name, timezone_id }),
+      });
+      const text = await resp.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+      if (!resp.ok) {
+        showResult('error', `Erro HTTP ${resp.status}`, data?.message || data?.error || 'O webhook retornou um erro.', null, data);
+        return;
+      }
+      const wabaId = data?.waba_id || data?.id || data?.data?.waba_id;
+      if (wabaId) {
+        showResult('success', 'WABA criada com sucesso!', 'A conta foi criada e está disponível no WhatsApp Manager.', wabaId, data);
+      } else if (data?.error || data?.errors) {
+        showResult('error', 'Erro ao criar WABA', data?.error || JSON.stringify(data?.errors), null, data);
+      } else {
+        showResult('warning', 'Resposta recebida', 'Webhook respondeu mas WABA ID não encontrado. Veja a resposta completa.', null, data);
+      }
+    } catch (err) {
+      showResult('error', 'Falha na requisição', err.message || 'Não foi possível conectar ao webhook.', null, null);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Criar WABA';
+    }
+  } else {
+    // fluxo múltiplo — dispara todas em paralelo
+    const names = Array.from({ length: qty }, () => waba_name);
+    showMultiPending(names);
+
+    const promises = names.map((name, i) =>
+      fetch(WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cookies, business_id, waba_name: name, timezone_id }),
+      })
+      .then(r => r.text())
+      .then(text => {
+        let data;
+        try { data = JSON.parse(text); } catch { data = { raw: text }; }
+        const wabaId = data?.waba_id || data?.id || data?.data?.waba_id;
+        updateMultiItem(i, name, wabaId ? 'ok' : (data?.error || data?.errors ? 'err' : 'warn'), wabaId, data);
+        return { ok: !!wabaId, wabaId };
+      })
+      .catch(err => {
+        updateMultiItem(i, name, 'err', null, { error: err.message });
+        return { ok: false };
+      })
+    );
+
+    Promise.all(promises).then(results => {
+      const ok = results.filter(r => r.ok).length;
+      document.getElementById('multi-summary').textContent = `${ok} de ${qty} criadas com sucesso`;
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Criar WABA';
+    });
+  }
+}
+
+function showResult(type, title, message, wabaId, raw) {
+  const resultEl   = document.getElementById('result');
+  const headerEl   = document.getElementById('result-header');
+  const iconEl     = document.getElementById('result-icon');
+  const titleEl    = document.getElementById('result-title');
+  const msgEl      = document.getElementById('result-message');
+  const wabaRow    = document.getElementById('waba-id-row');
+  const wabaValEl  = document.getElementById('waba-id-value');
+  const rawEl      = document.getElementById('raw-json');
+  const rawToggle  = document.getElementById('raw-toggle');
+
+  resultEl.className = 'result show ' + type;
+
+  const icons = {
+    success: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+    error:   '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+    warning: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  };
+
+  iconEl.innerHTML = icons[type] || icons.warning;
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+
+  if (wabaId) {
+    wabaRow.style.display = 'flex';
+    wabaValEl.textContent = wabaId;
+    document.getElementById('copy-btn').textContent = 'Copiar';
+    document.getElementById('copy-btn').classList.remove('copied');
+  } else {
+    wabaRow.style.display = 'none';
+  }
+
+  if (raw) {
+    rawEl.textContent = JSON.stringify(raw, null, 2);
+    rawToggle.style.display = 'flex';
+  } else {
+    rawToggle.style.display = 'none';
+    rawEl.classList.remove('show');
+    rawToggle.classList.remove('open');
+  }
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideResult() {
+  document.getElementById('result').className = 'result';
+}
+
+function toggleRaw() {
+  const raw    = document.getElementById('raw-json');
+  const toggle = document.getElementById('raw-toggle');
+  const showing = raw.classList.toggle('show');
+  toggle.classList.toggle('open', showing);
+  toggle.querySelector('span') && (toggle.querySelector('span').textContent = showing ? 'Ocultar resposta' : 'Ver resposta completa');
+}
+
+function copyWabaId() {
+  const val = document.getElementById('waba-id-value').textContent;
+  const btn = document.getElementById('copy-btn');
+  navigator.clipboard.writeText(val).then(() => {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('waba-id-value'));
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+}
+
+async function testarSemCookie() {
+  const btn = document.getElementById('testBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(139,144,184,0.3);border-top-color:var(--fg-muted)"></div> Testando...';
+  hideResult();
+
+  try {
+    const resp = await fetch(WEBHOOK_NOCOOKIE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    showResult('warning', 'Resposta do Meta sem cookie', 'Isso é o que o Meta retorna quando não há sessão autenticada.', null, data);
+  } catch (err) {
+    showResult('error', 'Falha na requisição', err.message, null, null);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Testar sem cookie';
+  }
+}
+
+function hideMultiResult() {
+  document.getElementById('multi-result').className = 'multi-result';
+  document.getElementById('multi-header').className = 'multi-header';
+  document.getElementById('multi-result').innerHTML = '';
+}
+
+function showMultiPending(names) {
+  const container = document.getElementById('multi-result');
+  container.className = 'multi-result show';
+  document.getElementById('multi-header').className = 'multi-header show';
+  document.getElementById('multi-summary').textContent = `Criando ${names.length} WABAs em paralelo...`;
+  container.innerHTML = names.map((name, i) => `
+    <div class="multi-item" id="mitem-${i}">
+      <span class="multi-item-num">${i + 1}</span>
+      <span class="multi-item-name">${name}</span>
+      <span class="multi-item-badge badge-wait">aguardando…</span>
+    </div>
+  `).join('');
+}
+
+function updateMultiItem(i, name, status, wabaId, raw) {
+  const el = document.getElementById(`mitem-${i}`);
+  if (!el) return;
+  const badge = status === 'ok'
+    ? `<span class="multi-item-badge badge-ok">✓ criada</span>`
+    : status === 'err'
+    ? `<span class="multi-item-badge badge-err">✗ erro</span>`
+    : `<span class="multi-item-badge badge-wait">? verificar</span>`;
+  const idSpan = wabaId
+    ? `<span class="multi-item-id" title="Clique para copiar" onclick="navigator.clipboard.writeText('${wabaId}')">${wabaId}</span>`
+    : '';
+  el.innerHTML = `
+    <span class="multi-item-num">${i + 1}</span>
+    <span class="multi-item-name">${name}</span>
+    ${idSpan}
+    ${badge}
+  `;
+}
+
+// ===== EM MASSA =====
+let _massaWabas = [];
+
+async function massaBuscarWABAs() {
+  const business_id = document.getElementById('m-business_id').value.trim();
+  const token       = document.getElementById('m-graph-token').value.trim();
+  const statusEl    = document.getElementById('m-waba-status');
+  const listEl      = document.getElementById('m-waba-list');
+  const btn         = document.getElementById('m-fetch-btn');
+
+  if (!business_id || !token) {
+    statusEl.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Preencha o Business ID e o Token primeiro.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:11px;height:11px;border-width:1.5px;border-color:rgba(139,144,184,0.3);border-top-color:var(--fg-muted)"></div> Buscando...';
+  statusEl.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:1.5px;border-color:rgba(139,144,184,0.3);border-top-color:var(--fg-muted)"></div> Buscando WABAs...';
+  statusEl.style.display = 'flex';
+  listEl.style.display = 'none';
+  listEl.innerHTML = '';
+  document.getElementById('m-submit-btn').disabled = true;
+  document.getElementById('m-submit-btn').style.opacity = '0.5';
+
+  try {
+    const url = `https://graph.facebook.com/v21.0/${business_id}/owned_whatsapp_business_accounts?fields=id,name,phone_numbers{display_phone_number}&limit=100&access_token=${token}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    if (json.error) {
+      statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> ${json.error.message}`;
+      return;
+    }
+
+    const all = json.data || [];
+    _massaWabas = all.filter(w => !w.phone_numbers || !w.phone_numbers.data || w.phone_numbers.data.length === 0);
+
+    if (_massaWabas.length === 0) {
+      statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--yellow);flex-shrink:0"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg> Todas as ${all.length} WABAs já têm número.`;
+      return;
+    }
+
+    statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--green);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> ${_massaWabas.length} WABA${_massaWabas.length > 1 ? 's' : ''} sem número. Selecione e preencha os telefones.`;
+
+    listEl.innerHTML = _massaWabas.map((w, i) => `
+      <div class="waba-row" id="m-row-${i}">
+        <input type="checkbox" id="m-chk-${i}" onchange="massaToggleRow(${i})">
+        <div class="waba-row-info">
+          <div class="waba-row-name">${w.name || 'Sem nome'}</div>
+          <div class="waba-row-id">${w.id}</div>
+        </div>
+        <div class="waba-row-phone">
+          <input type="text" id="m-phone-${i}" placeholder="5548999..." disabled style="opacity:0.4" spellcheck="false" autocomplete="off">
+        </div>
+      </div>
+    `).join('');
+    listEl.style.display = 'flex';
+
+  } catch(err) {
+    statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Erro: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Buscar WABAs';
+  }
+}
+
+function massaToggleRow(i) {
+  const chk  = document.getElementById(`m-chk-${i}`);
+  const row  = document.getElementById(`m-row-${i}`);
+  const inp  = document.getElementById(`m-phone-${i}`);
+  inp.disabled = !chk.checked;
+  inp.style.opacity = chk.checked ? '1' : '0.4';
+  row.classList.toggle('selected', chk.checked);
+  // habilita botão se ao menos 1 selecionado
+  const anyChecked = _massaWabas.some((_, j) => document.getElementById(`m-chk-${j}`)?.checked);
+  document.getElementById('m-submit-btn').disabled = !anyChecked;
+  document.getElementById('m-submit-btn').style.opacity = anyChecked ? '1' : '0.5';
+}
+
+async function massaDisparar() {
+  const _mFbSess = getFbSession();
+  const cookies     = _mFbSess ? _mFbSess.cookies : '';
+  const business_id = document.getElementById('m-business_id').value.trim();
+  if (!cookies) { alert('Sessão Facebook não encontrada. Vá até a aba Facebook e faça login primeiro.'); return; }
+  if (!business_id) { alert('Preencha o Business ID.'); return; }
+
+  const selecionadas = _massaWabas.map((w, i) => {
+    const chk   = document.getElementById(`m-chk-${i}`);
+    const phone = document.getElementById(`m-phone-${i}`)?.value.trim().replace(/\D/g, '');
+    if (chk?.checked && phone) return { waba: w, phone, index: i };
+    return null;
+  }).filter(Boolean);
+
+  if (selecionadas.length === 0) { alert('Selecione ao menos uma WABA e preencha o número.'); return; }
+
+  const btn = document.getElementById('m-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="border-color:rgba(26,18,8,0.3);border-top-color:#1a1208"></div> Disparando ${selecionadas.length}...`;
+
+  const resultList = document.getElementById('m-result-list');
+  resultList.style.display = 'flex';
+  resultList.innerHTML = selecionadas.map(({ waba, phone }, i) => `
+    <div class="m-result-item" id="m-res-${i}">
+      <div class="m-result-top">
+        <div class="m-result-info" style="flex:1;min-width:0">
+          <div class="m-result-name">${waba.name || 'Sem nome'}</div>
+          <div class="m-result-phone">${phone}</div>
+        </div>
+        <span class="multi-item-badge badge-wait" id="m-badge-${i}">aguardando…</span>
+      </div>
+    </div>
+  `).join('');
+
+  const promises = selecionadas.map(({ waba, phone }, i) =>
+    fetch(WEBHOOK_PHONE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies, business_id, waba_id: waba.id, phone_number: phone, display_name: 'Atendimento' }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      const phoneId = data?.phone_number_id;
+      const ok = data?.success && phoneId;
+      const badge = document.getElementById(`m-badge-${i}`);
+      const item  = document.getElementById(`m-res-${i}`);
+      if (ok) {
+        badge.className = 'multi-item-badge badge-ok';
+        badge.textContent = '✓ SMS enviado';
+        item.classList.add('ok');
+        // Adiciona campo de código SMS
+        item.insertAdjacentHTML('beforeend', `
+          <div class="m-sms-row" id="m-sms-row-${i}">
+            <input type="text" id="m-code-${i}" placeholder="código SMS" maxlength="8" style="letter-spacing:4px;font-weight:700;text-align:center;" autocomplete="one-time-code">
+            <button class="m-sms-btn" onclick="massaVerificar(${i}, '${phoneId}')">Verificar</button>
+            <span class="m-sms-status" id="m-sms-st-${i}" style="display:none"></span>
+          </div>
+        `);
+      } else {
+        badge.className = 'multi-item-badge badge-err';
+        badge.textContent = '✗ erro';
+        item.classList.add('err');
+        item.insertAdjacentHTML('beforeend', `<div style="font-size:12px;color:var(--red)">${data?.error || data?.message || 'Erro desconhecido'}</div>`);
+      }
+    })
+    .catch(err => {
+      const badge = document.getElementById(`m-badge-${i}`);
+      if (badge) { badge.className = 'multi-item-badge badge-err'; badge.textContent = '✗ falha'; }
+    })
+  );
+
+  await Promise.all(promises);
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Disparar Todos';
+}
+
+async function massaVerificar(i, phoneId) {
+  const code    = document.getElementById(`m-code-${i}`)?.value.trim().replace(/\D/g, '');
+  const _mFbSess2 = getFbSession();
+  const cookies = _mFbSess2 ? _mFbSess2.cookies : '';
+  const stEl    = document.getElementById(`m-sms-st-${i}`);
+  const btn     = document.querySelector(`#m-sms-row-${i} .m-sms-btn`);
+  if (!code || code.length < 4) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  stEl.style.display = 'none';
+
+  try {
+    const resp = await fetch(WEBHOOK_VERIFY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies, phone_number_id: phoneId, code }),
+    });
+    const data = await resp.json();
+    if (data?.success) {
+      stEl.className = 'm-sms-status m-sms-ok';
+      stEl.textContent = '✓ Verificado!';
+      stEl.style.display = 'inline-block';
+      btn.style.display = 'none';
+      document.getElementById(`m-code-${i}`).disabled = true;
+    } else {
+      stEl.className = 'm-sms-status m-sms-err';
+      stEl.textContent = '✗ Inválido';
+      stEl.style.display = 'inline-block';
+      btn.disabled = false;
+      btn.textContent = 'Verificar';
+    }
+  } catch {
+    stEl.className = 'm-sms-status m-sms-err';
+    stEl.textContent = '✗ Erro';
+    stEl.style.display = 'inline-block';
+    btn.disabled = false;
+    btn.textContent = 'Verificar';
+  }
+}
+
+// Atalho: Enter no campo waba_name dispara o form
+document.getElementById('waba_name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') criarWABA();
+});
+
+// ===== BUSCAR WABAs =====
+async function buscarWABAs() {
+  const business_id = document.getElementById('ph-business_id').value.trim();
+  const token       = document.getElementById('ph-graph-token').value.trim();
+  const statusEl    = document.getElementById('ph-waba-status');
+  const selectEl    = document.getElementById('ph-waba_select');
+  const btn         = document.getElementById('fetch-wabas-btn');
+
+  if (!business_id || !token) {
+    statusEl.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Preencha o Business ID e o Token primeiro.';
+    statusEl.style.display = 'flex';
+    selectEl.style.display = 'none';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:11px;height:11px;border-width:1.5px;border-color:rgba(139,144,184,0.3);border-top-color:var(--fg-muted)"></div> Buscando...';
+  statusEl.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:1.5px;border-color:rgba(139,144,184,0.3);border-top-color:var(--fg-muted)"></div> Buscando WABAs...';
+  statusEl.style.display = 'flex';
+  selectEl.style.display = 'none';
+
+  try {
+    const url = `https://graph.facebook.com/v21.0/${business_id}/owned_whatsapp_business_accounts?fields=id,name,phone_numbers{display_phone_number}&limit=100&access_token=${token}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    if (json.error) {
+      statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> ${json.error.message}`;
+      statusEl.style.display = 'flex';
+      return;
+    }
+
+    const all = json.data || [];
+    const semNumero = all.filter(w => !w.phone_numbers || !w.phone_numbers.data || w.phone_numbers.data.length === 0);
+
+    if (semNumero.length === 0) {
+      statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--yellow);flex-shrink:0"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg> ${all.length} WABAs encontradas, mas todas já têm número.`;
+      statusEl.style.display = 'flex';
+      return;
+    }
+
+    selectEl.innerHTML = '<option value="">Selecione uma WABA...</option>' +
+      semNumero.map(w => `<option value="${w.id}">${w.name || 'Sem nome'} — ${w.id}</option>`).join('');
+    selectEl.style.display = 'block';
+    statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--green);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> ${semNumero.length} WABA${semNumero.length > 1 ? 's' : ''} sem número (de ${all.length} total).`;
+    statusEl.style.display = 'flex';
+
+  } catch(err) {
+    statusEl.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--red);flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Erro: ${err.message}`;
+    statusEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Buscar WABAs';
+  }
+}
+
+// ===== ADICIONAR NÚMERO =====
+async function adicionarNumero() {
+  const fbSession    = getFbSession();
+  const cookies      = fbSession ? fbSession.cookies : '';
+  const business_id  = document.getElementById('ph-business_id').value.trim();
+  const waba_id      = document.getElementById('ph-waba_select').value.trim();
+  const phone_number = document.getElementById('ph-phone_number').value.trim().replace(/\D/g, '');
+  const display_name = document.getElementById('ph-display_name').value.trim() || 'Atendimento';
+
+  if (!cookies) {
+    showPhoneResult('error', 'Sessão Facebook não encontrada', 'Vá até a aba Facebook e faça login para capturar a sessão antes de continuar.', null, null);
+    return;
+  }
+  if (!business_id || !waba_id || !phone_number) {
+    showPhoneResult('error', 'Campos obrigatórios', !waba_id ? 'Busque e selecione uma WABA sem número antes de continuar.' : 'Preencha todos os campos obrigatórios.', null, null);
+    return;
+  }
+
+  const btn = document.getElementById('phoneBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> Processando...`;
+  hidePhoneResult();
+
+  try {
+    const resp = await fetch(WEBHOOK_PHONE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies, business_id, waba_id, phone_number, display_name }),
+    });
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+    if (!resp.ok) {
+      showPhoneResult('error', `Erro HTTP ${resp.status}`, data?.message || data?.error || 'O webhook retornou um erro.', null, data);
+      return;
+    }
+
+    const phoneId = data?.phone_number_id;
+    if (data?.success && phoneId) {
+      showPhoneResult('success', 'Número adicionado! SMS enviado.', `O número foi criado na WABA e um SMS de verificação foi disparado para ${phone_number}. Digite o código abaixo.`, phoneId, data);
+      mostrarVerificacaoSMS(phoneId, phone_number);
+    } else if (data?.error || data?.errors) {
+      showPhoneResult('error', 'Erro ao adicionar número', data?.error || JSON.stringify(data?.errors), null, data);
+    } else {
+      showPhoneResult('warning', 'Resposta recebida', 'Webhook respondeu mas não foi possível confirmar. Veja a resposta completa.', null, data);
+    }
+  } catch (err) {
+    showPhoneResult('error', 'Falha na requisição', err.message || 'Não foi possível conectar ao webhook.', null, null);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg> Adicionar e Solicitar SMS';
+  }
+}
+
+function showPhoneResult(type, title, message, phoneId, raw) {
+  const resultEl  = document.getElementById('ph-result');
+  const iconEl    = document.getElementById('ph-result-icon');
+  const titleEl   = document.getElementById('ph-result-title');
+  const msgEl     = document.getElementById('ph-result-message');
+  const idRow     = document.getElementById('ph-id-row');
+  const idValEl   = document.getElementById('ph-id-value');
+  const rawEl     = document.getElementById('ph-raw-json');
+  const rawToggle = document.getElementById('ph-raw-toggle');
+
+  resultEl.className = 'result show ' + type;
+
+  const icons = {
+    success: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+    error:   '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+    warning: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  };
+
+  iconEl.innerHTML = icons[type] || icons.warning;
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+
+  if (phoneId) {
+    idRow.style.display = 'flex';
+    idValEl.textContent = phoneId;
+    document.getElementById('ph-copy-btn').textContent = 'Copiar';
+    document.getElementById('ph-copy-btn').classList.remove('copied');
+  } else {
+    idRow.style.display = 'none';
+  }
+
+  if (raw) {
+    rawEl.textContent = JSON.stringify(raw, null, 2);
+    rawToggle.style.display = 'flex';
+  } else {
+    rawToggle.style.display = 'none';
+    rawEl.classList.remove('show');
+    rawToggle.classList.remove('open');
+  }
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hidePhoneResult() {
+  document.getElementById('ph-result').className = 'result';
+}
+
+function togglePhoneRaw() {
+  const raw    = document.getElementById('ph-raw-json');
+  const toggle = document.getElementById('ph-raw-toggle');
+  const showing = raw.classList.toggle('show');
+  toggle.classList.toggle('open', showing);
+}
+
+// ===== VERIFICAR SMS =====
+let _verifyPhoneNumberId = null;
+let _verifyCookies = null;
+
+function mostrarVerificacaoSMS(phoneId, phoneNumber) {
+  _verifyPhoneNumberId = phoneId;
+  const _fbSess = getFbSession();
+  _verifyCookies = _fbSess ? _fbSess.cookies : '';
+  document.getElementById('sms-subtitle').textContent = `Código SMS enviado para +${phoneNumber}`;
+  document.getElementById('sms-code').value = '';
+  document.getElementById('sms-verify-card').style.display = 'block';
+  document.getElementById('sms-result').style.display = 'none';
+  document.getElementById('sms-verify-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(() => document.getElementById('sms-code').focus(), 400);
+}
+
+async function verificarSMS() {
+  const code = document.getElementById('sms-code').value.trim().replace(/\D/g, '');
+  if (!code || code.length < 4) {
+    document.getElementById('sms-code').focus();
+    return;
+  }
+  if (!_verifyPhoneNumberId || !_verifyCookies) {
+    showSmsResult('error', 'Erro', 'Dados de sessão perdidos. Adicione o número novamente.', null);
+    return;
+  }
+
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Verificando...';
+
+  try {
+    const resp = await fetch(WEBHOOK_VERIFY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies: _verifyCookies, phone_number_id: _verifyPhoneNumberId, code }),
+    });
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+    if (data?.success) {
+      showSmsResult('success', 'Número verificado e ativo! ✓', 'O número foi verificado com sucesso e já está ativo na WABA.', data);
+      document.getElementById('sms-verify-card').style.display = 'none';
+    } else {
+      showSmsResult('error', 'Código inválido ou expirado', data?.error || data?.message || 'Verifique o código e tente novamente.', data);
+    }
+  } catch(err) {
+    showSmsResult('error', 'Falha na requisição', err.message, null);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Verificar e Ativar Número';
+  }
+}
+
+function showSmsResult(type, title, message, raw) {
+  const resultEl  = document.getElementById('sms-result');
+  const iconEl    = document.getElementById('sms-result-icon');
+  const titleEl   = document.getElementById('sms-result-title');
+  const msgEl     = document.getElementById('sms-result-message');
+  const rawEl     = document.getElementById('sms-raw-json');
+  const rawToggle = document.getElementById('sms-raw-toggle');
+  const icons = {
+    success: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+    error:   '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+  };
+  resultEl.className = 'result show ' + type;
+  resultEl.style.display = 'block';
+  iconEl.innerHTML = icons[type] || icons.error;
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+  if (raw) { rawEl.textContent = JSON.stringify(raw, null, 2); rawToggle.style.display = 'flex'; }
+  else { rawToggle.style.display = 'none'; }
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleSmsRaw() {
+  const raw = document.getElementById('sms-raw-json');
+  const toggle = document.getElementById('sms-raw-toggle');
+  const showing = raw.classList.toggle('show');
+  toggle.classList.toggle('open', showing);
+}
+
+// Enter no campo de código dispara verificação
+document.getElementById('sms-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') verificarSMS();
+});
+
+function copyPhoneId() {
+  const val = document.getElementById('ph-id-value').textContent;
+  const btn = document.getElementById('ph-copy-btn');
+  navigator.clipboard.writeText(val).then(() => {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('ph-id-value'));
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+}
+<\/script>
+
+</body>
+</html></script>
+
+<!-- ============ SITE 2: TEMPLATE BUILDER (Template) ============ -->
+<script type="text/html" id="src-tpl"><title>Template Builder · WhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:     #060810;
+  --s1:     #0b0e18;
+  --s2:     #10141f;
+  --s3:     #151b2a;
+  --bd:     #1f2d45;
+  --bd2:    #283650;
+  --green:  #22c55e;
+  --gdark:  rgba(34,197,94,.06);
+  --gbdr:   rgba(34,197,94,.22);
+  --glow:   rgba(34,197,94,.12);
+  --indigo: #6366f1;
+  --idim:   rgba(99,102,241,.08);
+  --ibdr:   rgba(99,102,241,.25);
+  --red:    #f43f5e;
+  --rdim:   rgba(244,63,94,.07);
+  --rbdr:   rgba(244,63,94,.22);
+  --amber:  #f59e0b;
+  --adim:   rgba(245,158,11,.07);
+  --abdr:   rgba(245,158,11,.20);
+  --text:   #dde3f0;
+  --text2:  #8da0bc;
+  --text3:  #4e6380;
+  --mono:   'JetBrains Mono', monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:#f4f6fa;--s1:#fff;--s2:#f0f2f7;--s3:#e8ebf2;--bd:#d0d6e4;--bd2:#b8c0d4;
+    --text:#111827;--text2:#4b5878;--text3:#8da0bc;color-scheme:light;
+  }
+}
+:root[data-theme="light"] {
+  --bg:#f4f6fa;--s1:#fff;--s2:#f0f2f7;--s3:#e8ebf2;--bd:#d0d6e4;--bd2:#b8c0d4;
+  --text:#111827;--text2:#4b5878;--text3:#8da0bc;color-scheme:light;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100%;}
+
+/* Topbar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);padding:0 20px;}
+.topbar-inner{max-width:1100px;margin:0 auto;height:52px;display:flex;align-items:center;gap:12px;}
+.logo-mark{width:28px;height:28px;background:var(--gdark);border:1px solid var(--gbdr);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-mark svg{width:14px;height:14px;fill:var(--green);}
+.brand{font-size:13px;font-weight:600;color:var(--text);}
+.brand-sub{font-size:11px;color:var(--text3);}
+.tb-spacer{flex:1;}
+.tb-field{display:flex;align-items:center;gap:7px;}
+.tb-label{font-size:11px;color:var(--text3);white-space:nowrap;}
+.tb-input{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:11px;font-family:var(--mono);color:var(--text);outline:none;width:190px;transition:border-color .15s;}
+.tb-input:focus{border-color:var(--indigo);}
+.btn-topbar{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:5px 11px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.btn-topbar:hover{border-color:var(--bd2);color:var(--text);}
+
+/* Tabs */
+.page-tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:0;}
+.page-tab{padding:12px 18px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;user-select:none;}
+.page-tab.active{color:var(--text);border-bottom-color:var(--green);}
+.page-tab:hover:not(.active){color:var(--text2);}
+
+/* Shell */
+.shell{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* Two-col layout for template builder */
+.two-col-layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;}
+@media(max-width:760px){.two-col-layout{grid-template-columns:1fr;}.preview-col{order:-1;}}
+
+/* Card */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;margin-bottom:10px;}
+.card:last-child{margin-bottom:0;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);}
+.card-actions{display:flex;gap:6px;align-items:center;}
+
+/* Fields */
+.field{margin-bottom:12px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:500px){.field-row{grid-template-columns:1fr;}}
+input[type=text],input[type=url],select,textarea{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:8px 11px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;}
+input[type=text]:focus,input[type=url]:focus,select:focus,textarea:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238da0bc' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:vertical;min-height:80px;}
+.hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5;}
+.char-count{font-size:10px;color:var(--text3);float:right;font-variant-numeric:tabular-nums;}
+
+/* Buttons */
+.btn{padding:7px 13px;border:none;border-radius:7px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--green);color:#000;}
+.btn-primary:hover{background:#1db954;}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-indigo{background:var(--indigo);color:#fff;}
+.btn-indigo:hover{background:#4f52e8;}
+.btn-indigo:disabled{opacity:.35;cursor:not-allowed;}
+.btn-ghost{background:var(--s2);border:1px solid var(--bd);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--bd2);color:var(--text);}
+.btn-danger{background:var(--rdim);border:1px solid var(--rbdr);color:var(--red);}
+.btn-danger:hover{background:rgba(244,63,94,.14);}
+.btn-sm{padding:4px 9px;font-size:11px;font-weight:500;border-radius:6px;}
+.btn-block{width:100%;justify-content:center;padding:11px;font-size:13px;margin-top:4px;}
+.spin{width:11px;height:11px;border:2px solid rgba(0,0,0,.15);border-top-color:#000;border-radius:50%;animation:spin .65s linear infinite;display:none;}
+.spin-w{border-color:rgba(255,255,255,.2);border-top-color:#fff;}
+.btn.loading .spin{display:block;}
+.btn.loading .lbl{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Section */
+.section-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.015em;margin-bottom:3px;}
+.section-sub{font-size:11px;color:var(--text3);margin-bottom:16px;}
+
+/* Badge */
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;flex-shrink:0;}
+.badge-green{background:var(--gdark);color:var(--green);border:1px solid var(--gbdr);}
+.badge-amber{background:var(--adim);color:var(--amber);border:1px solid var(--abdr);}
+.badge-indigo{background:var(--idim);color:var(--indigo);border:1px solid var(--ibdr);}
+.badge-red{background:var(--rdim);color:var(--red);border:1px solid var(--rbdr);}
+
+/* Cat/fmt tabs */
+.cat-tabs{display:flex;gap:6px;margin-bottom:2px;flex-wrap:wrap;}
+.cat-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--s2);border:1px solid var(--bd);color:var(--text3);transition:all .15s;}
+.cat-tab.active{background:var(--idim);border-color:var(--ibdr);color:var(--indigo);}
+.fmt-tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.fmt-tab{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;background:var(--s2);border:1px solid var(--bd);color:var(--text3);transition:all .15s;}
+.fmt-tab.active{background:var(--gdark);border-color:var(--gbdr);color:var(--green);}
+
+/* Var chip */
+.var-chip{display:inline-flex;align-items:center;gap:5px;background:var(--idim);border:1px solid var(--ibdr);border-radius:5px;padding:2px 8px;font-size:11px;font-family:var(--mono);color:var(--indigo);cursor:pointer;transition:background .12s;user-select:none;}
+.var-chip:hover{background:rgba(99,102,241,.14);}
+
+/* Btn list (template buttons) */
+.tpl-btn-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.tpl-btn-item{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;}
+.tpl-btn-row{display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;}
+.tpl-btn-row input{flex:1;min-width:100px;}
+
+/* JSON */
+.json-wrap{background:var(--s2);border:1px solid var(--bd);border-radius:8px;overflow:hidden;}
+.json-body{font-family:var(--mono);font-size:11px;color:var(--text2);padding:12px;overflow-x:auto;white-space:pre;max-height:240px;overflow-y:auto;line-height:1.6;}
+.json-body::-webkit-scrollbar{width:3px;height:3px;}
+.json-body::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+.k{color:var(--indigo);}.s{color:var(--green);}.n{color:var(--amber);}.b{color:var(--red);}
+
+/* WhatsApp bubble preview */
+.preview-col{position:sticky;top:calc(env(safe-area-inset-top,0px) + 100px);}
+.preview-phone{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;}
+.preview-header-bar{background:#075e54;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.preview-avatar{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.preview-contact{font-size:12px;font-weight:600;color:#fff;}
+.preview-status{font-size:10px;color:rgba(255,255,255,.7);}
+.preview-chat{background:#e5ddd5;padding:12px;min-height:160px;}
+.preview-bubble{background:#fff;border-radius:0 8px 8px 8px;padding:8px 10px;max-width:260px;box-shadow:0 1px 2px rgba(0,0,0,.12);font-size:12px;color:#111;line-height:1.5;margin-bottom:4px;}
+.bubble-hdr-img{width:100%;height:72px;background:#d0ccc8;border-radius:4px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#888;overflow:hidden;}
+.bubble-hdr-img img{width:100%;height:100%;object-fit:cover;}
+.bubble-body-text{white-space:pre-wrap;word-break:break-word;}
+.bubble-footer-text{font-size:11px;color:#888;margin-top:5px;}
+.bubble-time{font-size:10px;color:#aaa;text-align:right;margin-top:4px;}
+.bubble-btn-item{border-top:1px solid #e0dcd8;margin-top:6px;padding-top:7px;font-size:12px;font-weight:600;color:#128c7e;text-align:center;}
+
+/* ── WABA selector (Tab 1) ── */
+.waba-item{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px 13px;cursor:pointer;transition:border-color .12s,background .12s;user-select:none;margin-bottom:5px;}
+.waba-item:hover{border-color:var(--bd2);}
+.waba-item.sel{border-color:var(--gbdr);background:var(--gdark);}
+.waba-check{width:15px;height:15px;border:1.5px solid var(--bd2);border-radius:4px;flex-shrink:0;position:relative;transition:all .12s;}
+.waba-item.sel .waba-check{background:var(--green);border-color:var(--green);}
+.waba-item.sel .waba-check::after{content:'';position:absolute;width:7px;height:4px;border-left:1.5px solid #000;border-bottom:1.5px solid #000;transform:rotate(-45deg) translate(1px,-1px);top:3px;left:2px;}
+.waba-info{flex:1;min-width:0;}
+.waba-name{font-size:12px;font-weight:600;color:var(--text);}
+.waba-id{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:1px;}
+
+/* Dispatch results */
+.dispatch-table{width:100%;border-collapse:collapse;margin-top:10px;}
+.dispatch-table th{font-size:10px;font-weight:600;color:var(--text3);text-align:left;padding:5px 8px;border-bottom:1px solid var(--bd);letter-spacing:.03em;text-transform:uppercase;}
+.dispatch-table td{font-size:11px;padding:7px 8px;border-bottom:1px solid var(--bd);color:var(--text2);vertical-align:middle;}
+.dispatch-table td:first-child{font-family:var(--mono);font-size:10px;color:var(--text3);}
+.dispatch-table tr:last-child td{border-bottom:none;}
+.status-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;}
+.dot-wait{color:var(--amber);}
+.dot-ok{color:var(--green);}
+.dot-err{color:var(--red);}
+.dot-pend{color:var(--text3);}
+
+/* Progress bar */
+.prog-bar-wrap{background:var(--s2);border:1px solid var(--bd);border-radius:6px;height:6px;overflow:hidden;margin:8px 0;}
+.prog-bar{height:100%;background:var(--green);border-radius:6px;transition:width .3s;}
+
+/* Empty */
+.empty-state{padding:16px;text-align:center;color:var(--text3);font-size:12px;}
+
+/* Search row */
+.search-row{display:flex;gap:8px;margin-bottom:12px;}
+.search-row input{flex:1;}
+</style>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </div>
+    <span class="brand">Template Builder</span>
+    <span class="brand-sub">· Multi-WABA</span>
+    <div class="tb-spacer"></div>
+    <div class="tb-field">
+      <span class="tb-label">Business ID</span>
+      <input id="tbBizId" class="tb-input" type="text" placeholder="123456789012345"/>
+    </div>
+    <div class="tb-field">
+      <span class="tb-label">API Key</span>
+      <input id="tbApiKey" class="tb-input" type="text" placeholder="Token de acesso..."/>
+    </div>
+    <button class="btn-topbar" onclick="salvarCreds()">Salvar</button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div style="background:var(--s1);border-bottom:1px solid var(--bd);">
+  <div style="max-width:1100px;margin:0 auto;padding:0 20px;">
+    <div class="page-tabs">
+      <div class="page-tab active" onclick="switchTab('wabas')">1 · WABAs</div>
+      <div class="page-tab" onclick="switchTab('builder')">2 · Template</div>
+      <div class="page-tab" onclick="switchTab('dispatch')">3 · Disparar</div>
+      <div class="page-tab" onclick="switchTab('revisao')">4 · Revisão</div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ══ Tab 1: WABAs ══ -->
+  <div class="tab-pane active" id="tab-wabas">
+    <div class="section-title">Selecionar WABAs</div>
+    <div class="section-sub">Busque todas as WABAs do seu Business Portfolio e escolha em quais o template será criado.</div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Buscar WABAs</span>
+        <div class="card-actions">
+          <span id="wabaSelCount" class="badge badge-green" style="display:none">0 selecionadas</span>
+        </div>
+      </div>
+      <div class="search-row">
+        <input type="text" id="wabaFilter" placeholder="Filtrar por nome ou ID..." oninput="filterWabas()"/>
+        <button class="btn btn-primary" id="btnBuscarWabas" onclick="buscarWabas()">
+          <div class="spin"></div><span class="lbl">Buscar WABAs</span>
+        </button>
+      </div>
+      <div id="wabaList"><div class="empty-state">Clique em "Buscar WABAs" para carregar.</div></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="togAllWabas(true)">Selecionar todas</button>
+        <button class="btn btn-ghost btn-sm" onclick="togAllWabas(false)">Limpar</button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <button class="btn btn-primary" onclick="switchTab('builder')" id="btnNextBuilder" disabled>
+        Próximo — montar template →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ Tab 2: Builder ══ -->
+  <div class="tab-pane" id="tab-builder">
+    <div class="two-col-layout">
+
+      <!-- Build col -->
+      <div>
+        <div class="section-title">Montar template</div>
+        <div class="section-sub">Configure o template. Ele será replicado para todas as WABAs selecionadas.</div>
+
+        <!-- Identificação -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Identificação</span></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Nome <span style="color:var(--red)">*</span></label>
+              <input type="text" id="tplName" placeholder="nome_do_template" oninput="sanitizeName(this);updatePreview();updateJSON()"/>
+              <div class="hint">Minúsculas, números e underscores.</div>
+            </div>
+            <div class="field">
+              <label>Idioma <span style="color:var(--red)">*</span></label>
+              <select id="tplLang" onchange="updatePreview();updateJSON()">
+                <option value="pt_BR">pt_BR — Português (Brasil)</option>
+                <option value="pt_PT">pt_PT — Português (Portugal)</option>
+                <option value="en_US">en_US — English (US)</option>
+                <option value="es_AR">es_AR — Español (Argentina)</option>
+                <option value="es_ES">es_ES — Español (España)</option>
+                <option value="fr_FR">fr_FR — Français</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Categoria</label>
+            <div class="cat-tabs">
+              <div class="cat-tab active" data-cat="MARKETING" onclick="setCat(this)">MARKETING</div>
+              <div class="cat-tab" data-cat="UTILITY" onclick="setCat(this)">UTILITY</div>
+              <div class="cat-tab" data-cat="AUTHENTICATION" onclick="setCat(this)">AUTHENTICATION</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Formato de parâmetros</label>
+            <div class="cat-tabs">
+              <div class="cat-tab active" data-pf="POSITIONAL" onclick="setPF(this)">POSITIONAL — {{1}} {{2}}</div>
+              <div class="cat-tab" data-pf="NAMED" onclick="setPF(this)">NAMED — {{nome}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Header <span style="color:var(--text3);font-weight:400">(opcional)</span></span>
+            <span id="headerBadge" class="badge badge-indigo" style="display:none"></span>
+          </div>
+          <div class="fmt-tabs">
+            <div class="fmt-tab active" data-fmt="NONE" onclick="setHdrFmt(this)">Nenhum</div>
+            <div class="fmt-tab" data-fmt="TEXT" onclick="setHdrFmt(this)">Texto</div>
+            <div class="fmt-tab" data-fmt="IMAGE" onclick="setHdrFmt(this)">Imagem</div>
+            <div class="fmt-tab" data-fmt="VIDEO" onclick="setHdrFmt(this)">Vídeo</div>
+            <div class="fmt-tab" data-fmt="DOCUMENT" onclick="setHdrFmt(this)">Documento</div>
+          </div>
+          <div id="headerFields"></div>
+        </div>
+
+        <!-- Body -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Body <span style="color:var(--red)">*</span></span>
+            <span id="bodyVarsChips" style="display:flex;gap:5px;flex-wrap:wrap"></span>
+          </div>
+          <div class="field">
+            <label>Texto <span id="bodyCharCount" class="char-count">0 / 1024</span></label>
+            <textarea id="bodyText" placeholder="Olá {{1}}, seu pedido {{2}} foi confirmado!" oninput="updateBodyVars();updatePreview();updateJSON()"></textarea>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" onclick="insertVar('body')">+ Variável</button>
+              <button class="btn btn-ghost btn-sm" onclick="fmtTxt('*')">*Negrito*</button>
+              <button class="btn btn-ghost btn-sm" onclick="fmtTxt('_')">_Itálico_</button>
+              <button class="btn btn-ghost btn-sm" onclick="fmtTxt('~')">~Tachado~</button>
+            </div>
+          </div>
+          <div id="bodyVarExamples"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Footer <span style="color:var(--text3);font-weight:400">(opcional)</span></span></div>
+          <div class="field">
+            <label>Texto <span id="ftCC" class="char-count">0 / 60</span></label>
+            <input type="text" id="footerText" placeholder="Não responda a esta mensagem." maxlength="60" oninput="document.getElementById('ftCC').textContent=this.value.length+' / 60';updatePreview();updateJSON()"/>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Buttons <span style="color:var(--text3);font-weight:400">(máx 10)</span></span>
+            <span id="btnCount" class="badge badge-indigo" style="display:none"></span>
+          </div>
+          <div id="buttonList" class="tpl-btn-list"></div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="addBtn('QUICK_REPLY')">+ Quick Reply</button>
+            <button class="btn btn-ghost btn-sm" onclick="addBtn('URL')">+ URL</button>
+            <button class="btn btn-ghost btn-sm" onclick="addBtn('PHONE_NUMBER')">+ Telefone</button>
+            <button class="btn btn-ghost btn-sm" onclick="addBtn('COPY_CODE')">+ Copiar código</button>
+            <button class="btn btn-ghost btn-sm" onclick="addBtn('OTP')">+ OTP</button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <button class="btn btn-ghost" onclick="switchTab('wabas')">← Voltar</button>
+          <button class="btn btn-primary" onclick="switchTab('dispatch')">Próximo — disparar →</button>
+        </div>
+      </div>
+
+      <!-- Preview col -->
+      <div class="preview-col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Prévia WhatsApp</span>
+            <span class="badge badge-green">ao vivo</span>
+          </div>
+          <div class="preview-phone">
+            <div class="preview-header-bar">
+              <div class="preview-avatar">🤖</div>
+              <div>
+                <div class="preview-contact">Seu Bot</div>
+                <div class="preview-status">online</div>
+              </div>
+            </div>
+            <div class="preview-chat">
+              <div class="preview-bubble" id="waBubble">
+                <div class="bubble-body-text">Preencha o Body para ver a prévia.</div>
+                <div class="bubble-time">14:32 ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ Tab 4: Revisão ══ -->
+  <div class="tab-pane" id="tab-revisao">
+    <div class="section-title">Contestar Recategorização</div>
+    <div class="section-sub">Lista os templates recategorizados como MARKETING pela Meta. Selecione os que devem ser UTILITY e envie para análise.</div>
+
+    <div class="card" style="max-width:600px;">
+      <div class="card-head"><span class="card-title">Buscar em todas as WABAs</span></div>
+      <div class="field" style="color:var(--text2);font-size:12px;margin-bottom:8px;">Serão consultadas todas as WABAs cadastradas na aba 1.</div>
+      <div class="field" style="display:flex;gap:8px;">
+        <button class="btn btn-primary" id="btnBuscarTemplates" onclick="buscarTemplatesMarketing()" style="width:100%;justify-content:center;">
+          <div class="spin spin-w"></div><span class="lbl">🔍 Buscar templates MARKETING em todas as WABAs</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="revCard" style="display:none;">
+      <div class="card-head">
+        <span class="card-title">Templates recategorizados como MARKETING</span>
+        <div class="card-actions">
+          <span id="revSelCount" class="badge badge-amber" style="display:none">0 selecionados</span>
+        </div>
+      </div>
+      <div id="revTemplateList"></div>
+      <div id="revWabaLinks"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="togAllRev(true)">Selecionar todos</button>
+        <button class="btn btn-ghost btn-sm" onclick="togAllRev(false)">Limpar</button>
+      </div>
+    </div>
+
+    <div id="revResultCard" class="card" style="display:none;">
+      <div class="card-head"><span class="card-title">Resultado</span><span id="revResultSummary" class="badge badge-green"></span></div>
+      <div id="revResultTable"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <button class="btn btn-primary" id="btnContestar" onclick="contestarTemplates()" disabled style="max-width:260px;width:100%;justify-content:center;">
+        <div class="spin spin-w"></div><span class="lbl">📨 Enviar para análise</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ Tab 3: Dispatch ══ -->
+  <div class="tab-pane" id="tab-dispatch">
+    <div class="section-title">Disparar para WABAs</div>
+    <div class="section-sub">O template será criado simultaneamente em todas as WABAs selecionadas. Acompanhe o status de cada uma.</div>
+
+    <div class="card" id="dispatchSummaryCard">
+      <div class="card-head"><span class="card-title">Resumo</span></div>
+      <div id="dispatchSummary" style="font-size:12px;color:var(--text2);">Volte ao passo 1 para selecionar WABAs.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Status por WABA</span>
+        <div class="card-actions">
+          <div id="progWrap" style="display:none;align-items:center;gap:8px;min-width:160px;">
+            <div class="prog-bar-wrap" style="flex:1;">
+              <div class="prog-bar" id="progBar" style="width:0%"></div>
+            </div>
+            <span id="progLabel" style="font-size:10px;color:var(--text3);font-variant-numeric:tabular-nums;white-space:nowrap;"></span>
+          </div>
+        </div>
+      </div>
+      <div id="dispatchTable"><div class="empty-state">Nenhuma WABA selecionada ainda.</div></div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:4px;">
+      <button class="btn btn-ghost" onclick="switchTab('builder')">← Voltar</button>
+      <button class="btn btn-primary btn-block" id="btnDisparar" onclick="disparar()" style="max-width:260px;" disabled>
+        <div class="spin"></div><span class="lbl">🚀 Criar em todas as WABAs</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Creds ──────────────────────────────────────────────
+(function(){
+  try{
+    var biz=localStorage.getItem('meta_biz');
+    var ak=localStorage.getItem('meta_ak');
+    if(biz) document.getElementById('tbBizId').value=biz;
+    if(ak)  document.getElementById('tbApiKey').value=ak;
+  }catch(e){}
+})();
+function salvarCreds(){
+  try{
+    localStorage.setItem('meta_biz',document.getElementById('tbBizId').value.trim());
+    localStorage.setItem('meta_ak', document.getElementById('tbApiKey').value.trim());
+  }catch(e){}
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.page-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('tab-'+id).classList.add('active');
+  var idx={'wabas':0,'builder':1,'dispatch':2,'revisao':3}[id];
+  document.querySelectorAll('.page-tab')[idx].classList.add('active');
+  if(id==='dispatch') buildDispatchView();
+}
+
+// ── WABA state ─────────────────────────────────────────
+var allWabas=[];
+var filtWabas=[];
+var selWabas=new Set();
+
+async function buscarWabas(){
+  var ak=document.getElementById('tbApiKey').value.trim();
+  var biz=document.getElementById('tbBizId').value.trim();
+  if(!ak||!biz){alert('Preencha Business ID e API Key na barra superior.');return;}
+  var btn=document.getElementById('btnBuscarWabas');
+  btn.classList.add('loading');btn.disabled=true;
+  document.getElementById('wabaList').innerHTML='<div class="empty-state">Buscando...</div>';
+  try{
+    var r=await fetch('https://rarelookingorca-n8n.cloudfy.live/webhook/buscar-wabas',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({business_id:biz,access_token:ak})
+    });
+    var d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    allWabas=(d.data||[]);
+    filtWabas=allWabas.slice();
+    renderWabas();
+  }catch(e){
+    document.getElementById('wabaList').innerHTML='<div class="empty-state" style="color:var(--red)">Erro: '+e.message+'</div>';
+  }
+  btn.classList.remove('loading');btn.disabled=false;
+}
+
+function filterWabas(){
+  var q=document.getElementById('wabaFilter').value.toLowerCase();
+  filtWabas=q?allWabas.filter(function(w){return w.name.toLowerCase().includes(q)||String(w.id).includes(q);}):allWabas.slice();
+  renderWabas();
+}
+
+function renderWabas(){
+  var el=document.getElementById('wabaList');
+  if(!filtWabas.length){el.innerHTML='<div class="empty-state">Nenhuma WABA encontrada.</div>';return;}
+  el.innerHTML=filtWabas.map(function(w){
+    var sel=selWabas.has(w.id);
+    return '<div class="waba-item'+(sel?' sel':'')+'" onclick="togWaba(\''+w.id+'\')">' +
+      '<div class="waba-check"></div>'+
+      '<div class="waba-info">'+
+        '<div class="waba-name">'+esc(w.name||'WABA sem nome')+'</div>'+
+        '<div class="waba-id">ID: '+w.id+(w.message_template_namespace?' · NS: '+w.message_template_namespace:'')+'</div>'+
+      '</div>'+
+      (w.timezone_id?'<span class="badge badge-indigo" style="font-size:10px">TZ '+w.timezone_id+'</span>':'')+
+    '</div>';
+  }).join('');
+  updateWabaCount();
+}
+
+function togWaba(id){
+  selWabas.has(id)?selWabas.delete(id):selWabas.add(id);
+  renderWabas();
+}
+
+function togAllWabas(v){
+  filtWabas.forEach(function(w){v?selWabas.add(w.id):selWabas.delete(w.id);});
+  renderWabas();
+}
+
+function updateWabaCount(){
+  var cnt=selWabas.size;
+  var badge=document.getElementById('wabaSelCount');
+  badge.textContent=cnt+' selecionada'+(cnt===1?'':'s');
+  badge.style.display=cnt?'inline-flex':'none';
+  document.getElementById('btnNextBuilder').disabled=cnt===0;
+}
+
+// ── Template state ─────────────────────────────────────
+var tplState={category:'MARKETING',pf:'POSITIONAL',headerFmt:'NONE'};
+var tplButtons=[];
+var tplBtnId=0;
+
+function sanitizeName(el){el.value=el.value.toLowerCase().replace(/[^a-z0-9_]/g,'');}
+function setCat(el){document.querySelectorAll('.cat-tab[data-cat]').forEach(function(t){t.classList.remove('active');});el.classList.add('active');tplState.category=el.dataset.cat;updateJSON();}
+function setPF(el){document.querySelectorAll('.cat-tab[data-pf]').forEach(function(t){t.classList.remove('active');});el.classList.add('active');tplState.pf=el.dataset.pf;updateJSON();}
+
+function setHdrFmt(el){
+  document.querySelectorAll('.fmt-tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  tplState.headerFmt=el.dataset.fmt;
+  var badge=document.getElementById('headerBadge');
+  if(tplState.headerFmt==='NONE'){badge.style.display='none';}else{badge.textContent=tplState.headerFmt;badge.style.display='inline-flex';}
+  renderHdrFields();
+  updatePreview();updateJSON();
+}
+
+function renderHdrFields(){
+  var c=document.getElementById('headerFields');
+  if(tplState.headerFmt==='NONE'){c.innerHTML='';return;}
+  if(tplState.headerFmt==='TEXT'){
+    c.innerHTML='<div class="field"><label>Texto do header <span id="htCC" class="char-count">0/60</span></label>' +
+      '<input type="text" id="headerText" maxlength="60" placeholder="Novidade para {{1}}!" ' +
+      'oninput="tplState.headerText=this.value;document.getElementById(\'htCC\').textContent=this.value.length+\'/60\';updatePreview();updateJSON()"/></div>';
+  }else if(tplState.headerFmt==='IMAGE'){
+    c.innerHTML='<div class="field"><label>Imagem do header <span style="color:var(--text3);font-weight:400">(JPG, PNG, WEBP — máx 5MB)</span></label>' +
+      '<input type="file" id="headerFile" accept="image/jpeg,image/png,image/webp" onchange="tplState.headerFile=this.files[0];updatePreview();updateJSON()"/>' +
+      '<div class="hint">A imagem será enviada para a Meta ao criar o template.</div></div>';
+  }else{
+    var lbl={VIDEO:'URL do vídeo',DOCUMENT:'URL do documento'}[tplState.headerFmt];
+    c.innerHTML='<div class="field"><label>'+lbl+'</label>' +
+      '<input type="url" id="headerUrl" placeholder="https://exemplo.com/arquivo.pdf" oninput="tplState.headerUrl=this.value;updatePreview();updateJSON()"/>' +
+      '<div class="hint">URL pública acessível pela Meta.</div></div>';
+  }
+}
+
+window.bodyVarExampleValues={};
+function updateBodyVars(){
+  var text=document.getElementById('bodyText').value;
+  document.getElementById('bodyCharCount').textContent=text.length+' / 1024';
+  var matches=text.match(/\{\{([^}]+)\}\}/g)||[];
+  var seen=[];matches.forEach(function(m){var k=m.replace(/[{}]/g,'');if(!seen.includes(k))seen.push(k);});
+  document.getElementById('bodyVarsChips').innerHTML=seen.map(function(v){
+    return '<span class="var-chip" onclick="insertVarAt(\''+v+'\')" title="Inserir">{{'+v+'}}</span>';
+  }).join('');
+  // render example fields
+  var exDiv=document.getElementById('bodyVarExamples');
+  if(!seen.length){exDiv.innerHTML='';return;}
+  // preserve existing values
+  seen.forEach(function(k){if(window.bodyVarExampleValues[k]===undefined)window.bodyVarExampleValues[k]='';});
+  exDiv.innerHTML='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">'+
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;">Exemplos de variáveis <span style="color:var(--red)">*</span> <span style="font-weight:400">(exigidos pela Meta)</span></div>'+
+    seen.map(function(v){
+      return '<div class="field" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:11px;font-family:var(--mono);color:var(--indigo);min-width:36px;flex-shrink:0">{{'+v+'}}</span>'+
+        '<input type="text" placeholder="Valor de exemplo" value="'+esc(window.bodyVarExampleValues[v]||'')+'" oninput="window.bodyVarExampleValues[\''+v+'\']=this.value;updateJSON()" style="flex:1"/>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+
+function insertVar(zone){
+  var el=document.getElementById(zone==='body'?'bodyText':'headerText');
+  if(!el)return;
+  var val=el.value,pos=el.selectionStart||val.length;
+  var vars=(val.match(/\{\{(\d+)\}\}/g)||[]);
+  var next=tplState.pf==='POSITIONAL'?(vars.length+1):('var'+(vars.length+1));
+  el.value=val.slice(0,pos)+'{{'+next+'}}'+val.slice(pos);
+  updateBodyVars();updatePreview();updateJSON();
+}
+
+function insertVarAt(name){
+  var el=document.getElementById('bodyText');
+  var pos=el.selectionStart||el.value.length;
+  el.value=el.value.slice(0,pos)+'{{'+name+'}}'+el.value.slice(pos);
+  updateBodyVars();updatePreview();updateJSON();
+}
+
+function fmtTxt(marker){
+  var el=document.getElementById('bodyText');
+  var s=el.selectionStart,e=el.selectionEnd;
+  var sel=el.value.slice(s,e)||'texto';
+  el.value=el.value.slice(0,s)+marker+sel+marker+el.value.slice(e);
+  updateBodyVars();updatePreview();updateJSON();
+}
+
+// Buttons
+function addBtn(type){
+  if(tplButtons.length>=10)return;
+  var id=++tplBtnId;
+  tplButtons.push({id:id,type:type,text:'',value:'',urlType:'static',urlExample:''});
+  renderBtns();updateJSON();updatePreview();
+}
+function removeBtn(id){
+  tplButtons=tplButtons.filter(function(b){return b.id!==id;});
+  renderBtns();updateJSON();updatePreview();
+}
+function renderBtns(){
+  var el=document.getElementById('buttonList');
+  var cnt=document.getElementById('btnCount');
+  if(!tplButtons.length){el.innerHTML='';cnt.style.display='none';return;}
+  cnt.textContent=tplButtons.length;cnt.style.display='inline-flex';
+  el.innerHTML=tplButtons.map(function(b){
+    var tl={QUICK_REPLY:'Quick Reply',URL:'URL',PHONE_NUMBER:'Telefone',COPY_CODE:'Copiar código',OTP:'OTP'}[b.type]||b.type;
+    var bc=b.type==='QUICK_REPLY'?'badge-green':b.type==='URL'?'badge-indigo':'badge-amber';
+    var vPh={URL:'https://ex.com/{{1}}',PHONE_NUMBER:'+5511999999999',COPY_CODE:'ABCD1234',OTP:''}[b.type]||'';
+    var vLbl={URL:'URL',PHONE_NUMBER:'Número',COPY_CODE:'Código',OTP:'Tipo'}[b.type]||'';
+    var vField=b.type==='QUICK_REPLY'?'':
+      b.type==='URL'?
+        '<div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px;">'+
+          '<div style="display:flex;align-items:center;gap:5px;">'+
+            '<span style="font-size:10px;color:var(--text3);white-space:nowrap">URL</span>'+
+            '<input type="text" value="'+esc(b.value)+'" placeholder="https://site.com/{{1}}" oninput="setBtnVal('+b.id+',this.value)" style="flex:1"/>'+
+            '<div style="display:flex;gap:3px;flex-shrink:0;">'+
+              '<span onclick="setBtnUrlType('+b.id+',\'static\')" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;'+(b.urlType==='static'?'background:var(--idim);border:1px solid var(--ibdr);color:var(--indigo)':'background:var(--s3);border:1px solid var(--bd);color:var(--text3)')+'">Estático</span>'+
+              '<span onclick="setBtnUrlType('+b.id+',\'dynamic\')" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;'+(b.urlType==='dynamic'?'background:var(--idim);border:1px solid var(--ibdr);color:var(--indigo)':'background:var(--s3);border:1px solid var(--bd);color:var(--text3)')+'">Dinâmico</span>'+
+            '</div>'+
+          '</div>'+
+          (b.urlType==='dynamic'?'<div style="display:flex;align-items:center;gap:5px;"><span style="font-size:10px;color:var(--text3);white-space:nowrap">Exemplo</span><input type="text" value="'+esc(b.urlExample||'')+'" placeholder="https://site.com/pedido123" oninput="setBtnUrlExample('+b.id+',this.value)" style="flex:1"/></div>':'') +
+        '</div>'
+      :
+      '<div style="display:flex;align-items:center;gap:5px;min-width:140px;">'+
+        '<span style="font-size:10px;color:var(--text3);white-space:nowrap">'+vLbl+'</span>'+
+        '<input type="text" value="'+esc(b.value)+'" placeholder="'+vPh+'" oninput="setBtnVal('+b.id+',this.value)" style="flex:1"/>'+
+      '</div>';
+    return '<div class="tpl-btn-item">'+
+      '<span class="badge '+bc+'" style="margin-top:2px;white-space:nowrap">'+tl+'</span>'+
+      '<div class="tpl-btn-row">'+
+        '<input type="text" value="'+esc(b.text)+'" placeholder="Texto do botão" oninput="setBtnTxt('+b.id+',this.value)"/>'+
+        vField+
+      '</div>'+
+      '<button class="btn btn-danger btn-sm" onclick="removeBtn('+b.id+')" style="flex-shrink:0">✕</button>'+
+    '</div>';
+  }).join('');
+}
+function setBtnTxt(id,v){var b=tplButtons.find(function(x){return x.id===id;});if(b){b.text=v;updateJSON();updatePreview();}}
+function setBtnVal(id,v){var b=tplButtons.find(function(x){return x.id===id;});if(b){b.value=v;updateJSON();updatePreview();}}
+function setBtnUrlType(id,t){var b=tplButtons.find(function(x){return x.id===id;});if(b){b.urlType=t;renderBtns();updateJSON();updatePreview();}}
+function setBtnUrlExample(id,v){var b=tplButtons.find(function(x){return x.id===id;});if(b){b.urlExample=v;updateJSON();}}
+
+// ── Build payload ──────────────────────────────────────
+function buildPayload(){
+  var name=document.getElementById('tplName').value.trim();
+  var lang=document.getElementById('tplLang').value;
+  var components=[];
+
+  if(tplState.headerFmt!=='NONE'){
+    if(tplState.headerFmt==='TEXT'){
+      var ht=(document.getElementById('headerText')||{}).value||'';
+      var hc={type:'HEADER',format:'TEXT',text:ht};
+      var hv=ht.match(/\{\{([^}]+)\}\}/g)||[];
+      if(hv.length) hc.example={header_text:hv.map(function(){return 'Exemplo';})};
+      components.push(hc);
+    }else if(tplState.headerFmt==='IMAGE'){
+      // sem example aqui — o handle real é injetado no disparar() após upload
+      components.push({type:'HEADER',format:'IMAGE'});
+    }else{
+      var url=(document.getElementById('headerUrl')||{}).value||'';
+      var hc2={type:'HEADER',format:tplState.headerFmt};
+      if(url) hc2.example={header_handle:[url]};
+      components.push(hc2);
+    }
+  }
+
+  var bodyText=document.getElementById('bodyText').value;
+  if(bodyText){
+    var bc={type:'BODY',text:bodyText};
+    var bv=bodyText.match(/\{\{([^}]+)\}\}/g)||[];
+    if(bv.length){
+      var seen=[];bv.forEach(function(m){var k=m.replace(/[{}]/g,'');if(!seen.includes(k))seen.push(k);});
+      bc.example={body_text:[seen.map(function(k){return window.bodyVarExampleValues[k]||'Exemplo';})]};
+    }
+    components.push(bc);
+  }
+
+  var ft=document.getElementById('footerText').value;
+  if(ft) components.push({type:'FOOTER',text:ft});
+
+  if(tplButtons.length){
+    var btns=tplButtons.map(function(b){
+      var obj={type:b.type,text:b.text||''};
+      if(b.type==='URL'&&b.value){obj.url=b.value;if(b.urlType==='dynamic'&&b.urlExample) obj.example=[b.urlExample];}
+      if(b.type==='PHONE_NUMBER'&&b.value) obj.phone_number=b.value;
+      if(b.type==='COPY_CODE'&&b.value) obj.example=[b.value];
+      return obj;
+    });
+    components.push({type:'BUTTONS',buttons:btns});
+  }
+
+  return {
+    name:name||'nome_do_template',
+    language:lang,
+    category:tplState.category,
+    parameter_format:tplState.pf,
+    components:components
+  };
+}
+
+// ── JSON ───────────────────────────────────────────────
+function hl(obj){
+  return JSON.stringify(obj,null,2).replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,function(m){
+    if(/^"/.test(m)) return /:$/.test(m)?'<span class="k">'+m+'</span>':'<span class="s">'+m+'</span>';
+    if(/true|false|null/.test(m)) return '<span class="b">'+m+'</span>';
+    return '<span class="n">'+m+'</span>';
+  });
+}
+function updateJSON(){document.getElementById('jsonOut').innerHTML=hl(buildPayload());}
+function copyJSON(){
+  var text=JSON.stringify(buildPayload(),null,2);
+  try{navigator.clipboard.writeText(text).catch(function(){fb(text);});}catch(e){fb(text);}
+}
+function fb(text){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
+
+// ── Preview ────────────────────────────────────────────
+function updatePreview(){
+  var bubble=document.getElementById('waBubble');
+  var body=document.getElementById('bodyText').value||'';
+  var exBody=body.replace(/\{\{([^}]+)\}\}/g,function(m,v){return '<strong>['+v+']</strong>';})
+    .replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<b>$1</b>').replace(/_(.*?)_/g,'<em>$1</em>').replace(/~(.*?)~/g,'<s>$1</s>');
+  var html='';
+  if(tplState.headerFmt==='IMAGE'){
+    var imgSrc=tplState.headerFile?URL.createObjectURL(tplState.headerFile):'';
+    html+='<div class="bubble-hdr-img">'+(imgSrc?'<img src="'+imgSrc+'" style="max-width:100%;border-radius:6px"/>':'🖼 IMAGE')+'</div>';
+  }else if(tplState.headerFmt==='VIDEO'){
+    var url=(document.getElementById('headerUrl')||{}).value||'';
+    html+='<div class="bubble-hdr-img">🎬 VIDEO</div>';
+  }else if(tplState.headerFmt==='DOCUMENT'){
+    html+='<div class="bubble-hdr-img">📄 DOCUMENT</div>';
+  }else if(tplState.headerFmt==='TEXT'){
+    var ht=(document.getElementById('headerText')||{}).value||'';
+    if(ht) html+='<div style="font-weight:700;margin-bottom:5px;font-size:13px">'+ht.replace(/\{\{([^}]+)\}\}/g,'<strong>[$1]</strong>')+'</div>';
+  }
+  html+='<div class="bubble-body-text">'+(exBody||'<span style="color:#aaa">Corpo da mensagem...</span>')+'</div>';
+  var ft=document.getElementById('footerText').value;
+  if(ft) html+='<div class="bubble-footer-text">'+ft+'</div>';
+  html+='<div class="bubble-time">14:32 ✓✓</div>';
+  tplButtons.forEach(function(b){if(b.text) html+='<div class="bubble-btn-item">'+b.text+'</div>';});
+  bubble.innerHTML=html;
+}
+
+// ── Dispatch view ──────────────────────────────────────
+function buildDispatchView(){
+  var selArr=Array.from(selWabas);
+  var summary=document.getElementById('dispatchSummary');
+  var tbl=document.getElementById('dispatchTable');
+  var btn=document.getElementById('btnDisparar');
+
+  if(!selArr.length){
+    summary.innerHTML='<span style="color:var(--red)">Nenhuma WABA selecionada.</span> <a style="color:var(--indigo);cursor:pointer" onclick="switchTab(\'wabas\')">Voltar ao passo 1.</a>';
+    tbl.innerHTML='<div class="empty-state">Nenhuma WABA selecionada ainda.</div>';
+    btn.disabled=true;
+    return;
+  }
+
+  var name=document.getElementById('tplName').value.trim()||'(sem nome)';
+  var body=document.getElementById('bodyText').value.trim();
+  summary.innerHTML='Template <strong style="color:var(--green)">'+esc(name)+'</strong> · ' +
+    '<strong>'+selArr.length+'</strong> WABA'+(selArr.length>1?'s':'')+
+    (body?'':' · <span style="color:var(--red)">Body vazio!</span>');
+
+  btn.disabled=!body||!document.getElementById('tplName').value.trim();
+
+  // Build table
+  var rows=selArr.map(function(id){
+    var w=allWabas.find(function(x){return x.id===id;})||{id:id,name:id};
+    return {id:id,name:w.name||id,status:'pending',detail:''};
+  });
+  window._dispatchRows=rows;
+  renderDispatchTable(rows);
+  document.getElementById('progWrap').style.display='none';
+}
+
+function renderDispatchTable(rows){
+  if(!rows||!rows.length){document.getElementById('dispatchTable').innerHTML='<div class="empty-state">Nenhuma WABA.</div>';return;}
+  var html='<table class="dispatch-table"><thead><tr><th>WABA ID</th><th>Nome</th><th>Status</th><th>Detalhe</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var sc=r.status==='ok'?'dot-ok':r.status==='err'?'dot-err':r.status==='running'?'dot-wait':'dot-pend';
+    var si=r.status==='ok'?'✓':r.status==='err'?'✗':r.status==='running'?'⏳':'—';
+    html+='<tr id="drow_'+r.id+'">'+
+      '<td>'+r.id+'</td>'+
+      '<td style="color:var(--text)">'+esc(r.name)+'</td>'+
+      '<td><span class="status-dot '+sc+'">'+si+' '+r.status+'</span></td>'+
+      '<td style="font-family:var(--mono);font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.detail)+'</td>'+
+    '</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('dispatchTable').innerHTML=html;
+}
+
+function updateRow(id,status,detail){
+  var rows=window._dispatchRows||[];
+  var r=rows.find(function(x){return x.id===id;});
+  if(r){r.status=status;r.detail=detail||'';}
+  var tr=document.getElementById('drow_'+id);
+  if(!tr) return;
+  var sc=status==='ok'?'dot-ok':status==='err'?'dot-err':status==='running'?'dot-wait':'dot-pend';
+  var si=status==='ok'?'✓':status==='err'?'✗':status==='running'?'⏳':'—';
+  tr.children[2].innerHTML='<span class="status-dot '+sc+'">'+si+' '+status+'</span>';
+  tr.children[3].textContent=detail||'';
+}
+
+// ── Disparar ───────────────────────────────────────────
+async function disparar(){
+  var ak=document.getElementById('tbApiKey').value.trim();
+  if(!ak){alert('API Key não preenchida na barra superior.');return;}
+  var selArr=Array.from(selWabas);
+  if(!selArr.length){alert('Nenhuma WABA selecionada.');return;}
+
+  var payload=buildPayload();
+  var btn=document.getElementById('btnDisparar');
+  btn.classList.add('loading');btn.disabled=true;
+
+  var progWrap=document.getElementById('progWrap');
+  var progBar=document.getElementById('progBar');
+  var progLabel=document.getElementById('progLabel');
+  progWrap.style.display='flex';
+
+  var total=selArr.length, ok=0, fail=0, done=0;
+
+  var needsImageUpload=tplState.headerFmt==='IMAGE';
+  if(needsImageUpload && !tplState.headerFile){
+    alert('Selecione uma imagem para o header antes de disparar.');
+    btn.classList.remove('loading');btn.disabled=false;
+    return;
+  }
+
+  // Mark all as pending
+  selArr.forEach(function(id){updateRow(id,'pending','aguardando...');});
+
+  // Fire all in parallel
+  var promises=selArr.map(function(wabaId){
+    return (async function(){
+      updateRow(wabaId,'running','enviando...');
+      try{
+        var finalPayload=JSON.parse(JSON.stringify(payload));
+
+        if(needsImageUpload){
+          updateRow(wabaId,'running','enviando imagem...');
+          var fd=new FormData();
+          fd.append('data',tplState.headerFile,tplState.headerFile.name);
+          fd.append('waba_id',wabaId);
+          fd.append('access_token',ak);
+          var upR=await fetch('https://rarelookingorca-n8n.cloudfy.live/webhook/upload-imagem',{method:'POST',body:fd});
+          var upTxt=await upR.text();
+          var upD=upTxt?JSON.parse(upTxt):{};
+          if(upD.error||!upD.h){
+            done++;fail++;
+            updateRow(wabaId,'err','Erro no upload: '+(upD.message||JSON.stringify(upD).slice(0,100)));
+            var pct2=Math.round(done/total*100);progBar.style.width=pct2+'%';progLabel.textContent=done+' / '+total+' · ✓'+ok+' ✗'+fail;
+            return;
+          }
+          var hdrComp=finalPayload.components.find(function(c){return c.type==='HEADER'&&c.format==='IMAGE';});
+          if(hdrComp) hdrComp.example={header_handle:[upD.h]};
+          updateRow(wabaId,'running','criando template...');
+        }
+
+        var r=await fetch('https://rarelookingorca-n8n.cloudfy.live/webhook/criar-template',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({waba_id:wabaId,access_token:ak,template:finalPayload})
+        });
+        var txt=await r.text();
+        var d=txt?JSON.parse(txt):{};
+        done++;
+        if(d.id){
+          ok++;
+          updateRow(wabaId,'ok','ID: '+d.id+' · '+(d.status||'PENDING'));
+        }else if(d.error){
+          fail++;
+          updateRow(wabaId,'err',d.message||d.error.message||'Erro desconhecido');
+        }else{
+          fail++;
+          updateRow(wabaId,'err',JSON.stringify(d).slice(0,80));
+        }
+      }catch(e){
+        done++;fail++;
+        updateRow(wabaId,'err',e.message||'Erro de rede');
+      }
+      var pct=Math.round(done/total*100);
+      progBar.style.width=pct+'%';
+      progLabel.textContent=done+' / '+total+' · ✓'+ok+' ✗'+fail;
+    })();
+  });
+
+  await Promise.all(promises);
+
+  btn.classList.remove('loading');btn.disabled=false;
+  progLabel.textContent='Concluído · ✓'+ok+' criado'+(ok!==1?'s':'')+' · ✗'+fail+' erro'+(fail!==1?'s':'');
+}
+
+// ── Revisão ────────────────────────────────────────────
+var revTemplates=[];
+var revSel=new Set();
+
+async function buscarTemplatesMarketing(){
+  var ak=document.getElementById('tbApiKey').value.trim();
+  if(!ak){alert('Preencha a API Key na barra superior.');return;}
+  if(!allWabas.length){alert('Nenhuma WABA carregada. Vá à aba 1 e clique em "Buscar WABAs" primeiro.');return;}
+  var btn=document.getElementById('btnBuscarTemplates');
+  btn.classList.add('loading');btn.disabled=true;
+  revTemplates=[];revSel=new Set();
+  try{
+    var results=await Promise.all(allWabas.map(async function(w){
+      try{
+        var r=await fetch('https://rarelookingorca-n8n.cloudfy.live/webhook/listar-templates',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({waba_id:w.id,access_token:ak})
+        });
+        var d=await r.json();
+        if(d.error) return [];
+        return (d.data||[]).filter(function(t){return t.category==='MARKETING';}).map(function(t){
+          return Object.assign({},t,{_wabaName:w.name||w.id,_wabaId:w.id});
+        });
+      }catch(e){return [];}
+    }));
+    revTemplates=results.reduce(function(a,b){return a.concat(b);},[]);
+    document.getElementById('revCard').style.display='block';
+    renderRevTemplates();
+  }catch(e){
+    alert('Erro: '+e.message);
+  }
+  btn.classList.remove('loading');btn.disabled=false;
+}
+
+function renderRevTemplates(){
+  var el=document.getElementById('revTemplateList');
+  document.getElementById('revWabaLinks').innerHTML='';
+  if(!revTemplates.length){
+    el.innerHTML='<div class="empty-state" style="color:var(--green)">✓ Nenhum template recategorizado como MARKETING encontrado.</div>';
+    return;
+  }
+  var biz=document.getElementById('tbBizId').value.trim();
+  el.innerHTML=revTemplates.map(function(t){
+    var url=biz?'https://business.facebook.com/business-support-home/'+biz+'/'+t._wabaId+'/?templates_tab=category_updates':'';
+    var btn=url?'<a href="'+url+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0;">↗ Pedir análise</a>':'';
+    return '<div class="waba-item" style="margin-bottom:5px;cursor:default;">'+
+      '<div class="waba-info">'+
+        '<div class="waba-name">'+esc(t.name)+'</div>'+
+        '<div class="waba-id">'+t.language+(t._wabaName?' · WABA: '+esc(t._wabaName):'')+'</div>'+
+      '</div>'+
+      '<span class="badge badge-amber" style="flex-shrink:0;">MARKETING</span>'+
+      btn+
+    '</div>';
+  }).join('');
+  if(!biz) document.getElementById('revWabaLinks').innerHTML='<div style="font-size:11px;color:var(--text3);margin-top:6px;">Preencha o Business ID na barra superior para ver os links diretos.</div>';
+}
+
+function togRevTemplate(id){revSel.has(id)?revSel.delete(id):revSel.add(id);renderRevTemplates();}
+function togAllRev(v){revTemplates.forEach(function(t){v?revSel.add(t.id):revSel.delete(t.id);});renderRevTemplates();}
+
+function updateRevCount(){
+  var cnt=revSel.size;
+  var badge=document.getElementById('revSelCount');
+  badge.textContent=cnt+' selecionado'+(cnt===1?'':'s');
+  badge.style.display=cnt?'inline-flex':'none';
+  document.getElementById('btnContestar').disabled=cnt===0;
+}
+
+async function contestarTemplates(){
+  var ak=document.getElementById('tbApiKey').value.trim();
+  var ids=Array.from(revSel);
+  if(!ids.length) return;
+  var btn=document.getElementById('btnContestar');
+  btn.classList.add('loading');btn.disabled=true;
+  var results=[];
+  await Promise.all(ids.map(async function(templateId){
+    var t=revTemplates.find(function(x){return x.id===templateId;})||{id:templateId,name:templateId};
+    try{
+      var r=await fetch('https://rarelookingorca-n8n.cloudfy.live/webhook/contestar-categoria',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({template_id:templateId,access_token:ak})
+      });
+      var txt=await r.text();
+      var d=txt?JSON.parse(txt):{};
+      results.push({name:t.name,id:templateId,ok:!!d.success,detail:d.success?'Enviado para análise':(d.error?d.error.message:(d.message||JSON.stringify(d).slice(0,80)))});
+    }catch(e){
+      results.push({name:t.name,id:templateId,ok:false,detail:e.message});
+    }
+  }));
+  // show results
+  var ok=results.filter(function(x){return x.ok;}).length;
+  var rc=document.getElementById('revResultCard');
+  rc.style.display='block';
+  document.getElementById('revResultSummary').textContent='✓'+ok+' / '+results.length;
+  document.getElementById('revResultTable').innerHTML=
+    '<table class="dispatch-table"><thead><tr><th>Template</th><th>Status</th><th>Detalhe</th></tr></thead><tbody>'+
+    results.map(function(r){
+      return '<tr><td style="color:var(--text)">'+esc(r.name)+'</td>'+
+        '<td><span class="status-dot '+(r.ok?'dot-ok':'dot-err')+'">'+(r.ok?'✓ ok':'✗ err')+'</span></td>'+
+        '<td style="font-size:11px">'+esc(r.detail)+'</td></tr>';
+    }).join('')+
+    '</tbody></table>';
+  btn.classList.remove('loading');btn.disabled=false;
+}
+
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Init
+updateJSON();
+updatePreview();
+<\/script></script>
+
+<!-- ============ SITE 3: INFOBIP (Campanha) ============ -->
+<script type="text/html" id="src-ib"><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Infobip WhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#07090f;--s1:#0d1117;--s2:#131922;--s3:#192130;--border:#1e2d3d;--green:#25d366;--gdim:rgba(37,211,102,.08);--gbdr:rgba(37,211,102,.2);--blue:#3b82f6;--bdim:rgba(59,130,246,.08);--bbdr:rgba(59,130,246,.2);--red:#ef4444;--rdim:rgba(239,68,68,.08);--rbdr:rgba(239,68,68,.2);--yellow:#f59e0b;--ydim:rgba(245,158,11,.08);--text:#e2e8f0;--muted:#4a6080;--dim:#7a9ab8;--mono:'JetBrains Mono',monospace;--sidebar:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar);min-height:100vh;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:20px 16px 18px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:32px;height:32px;background:var(--gdim);border:1px solid var(--gbdr);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon svg{width:15px;height:15px;fill:var(--green)}
+.sb-logo-text{font-size:13px;font-weight:700;line-height:1.2}
+.sb-logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:0 8px;margin:16px 0 6px}
+.sb-label:first-child{margin-top:4px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:7px;cursor:pointer;transition:all .15s;font-size:12px;font-weight:500;color:var(--dim);user-select:none}
+.sb-item:hover{background:var(--s2);color:var(--text)}
+.sb-item.active{background:var(--gdim);color:var(--green);border:1px solid var(--gbdr)}
+.sb-item.active .sb-icon{color:var(--green)}
+.sb-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-foot{padding:12px 16px;border-top:1px solid var(--border)}
+.sb-cfg{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:11px;color:var(--muted);transition:all .15s}
+.sb-cfg:hover{background:var(--s2);color:var(--text)}
+
+/* ── Main area ── */
+.main{margin-left:var(--sidebar);flex:1;padding:28px 28px 40px;max-width:1000px}
+.page{display:none}.page.active{display:block}
+
+/* ── Page header ── */
+.pg-hdr{margin-bottom:24px}
+.pg-hdr h2{font-size:18px;font-weight:700}
+.pg-hdr p{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* ── Config screen ── */
+.cfg-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.cfg-box{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:32px;width:100%;max-width:440px}
+.cfg-foot{font-size:11px;color:var(--muted);margin-top:14px;text-align:center}
+.cfg-foot a{color:var(--green);cursor:pointer}
+
+/* ── Steps nav ── */
+.snav{display:flex;align-items:center;margin-bottom:22px}
+.sd{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap}
+.sd.act{color:var(--text)}.sd.done{color:var(--green)}
+.sn{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--border);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sd.act .sn{border-color:var(--blue);color:var(--blue)}.sd.done .sn{border-color:var(--green);color:var(--green);background:var(--gdim)}
+.sl{flex:1;height:1px;background:var(--border);margin:0 10px}
+.step{display:none}.step.act{display:block}
+
+/* ── Cards ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:11px;padding:18px;margin-bottom:12px}
+.chead{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+
+/* ── Inputs ── */
+.fld{margin-bottom:11px}.fld:last-child{margin-bottom:0}
+label{display:block;font-size:11px;font-weight:600;color:var(--dim);margin-bottom:4px}
+input[type=text],input[type=url],input[type=password],textarea,select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=url]:focus,input[type=password]:focus,textarea:focus,select:focus{border-color:var(--blue)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+select option{background:var(--s2)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+
+/* ── Search bar ── */
+.selbar{display:flex;gap:8px;margin-bottom:12px}
+.selbar input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:12px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+.selbar input:focus{border-color:var(--blue)}.selbar input::placeholder{color:var(--muted)}
+
+/* ── Buttons ── */
+.btn{padding:8px 14px;border:none;border-radius:7px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#20c55a}.btn-green:disabled{opacity:.4;cursor:not-allowed}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2563eb}.btn-blue:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--dim)}.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-all{background:var(--gdim);border:1px solid var(--gbdr);color:var(--green);padding:7px 12px;font-size:11px}.btn-all:hover{background:rgba(37,211,102,.15)}
+.btn-all-b{background:var(--bdim);border:1px solid var(--bbdr);color:var(--blue)}.btn-all-b:hover{background:rgba(59,130,246,.15)}
+.brow{display:flex;gap:8px;margin-top:14px}
+.brow .btn{flex:1;justify-content:center;padding:11px;font-size:13px}
+.spin{width:12px;height:12px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn.loading .spin{display:block}.btn.loading .lbl{display:none}
+.spin-w{border-top-color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Lists ── */
+.lst{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;padding-right:2px}
+.lst::-webkit-scrollbar{width:3px}.lst::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.it{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:9px 11px;cursor:pointer;transition:all .15s;user-select:none}
+.it:hover{border-color:var(--dim)}.it.sg{border-color:var(--green);background:var(--gdim)}.it.sb{border-color:var(--blue);background:var(--bdim)}
+.ck{width:15px;height:15px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;position:relative;transition:all .15s}
+.it.sg .ck{background:var(--green);border-color:var(--green)}.it.sb .ck{background:var(--blue);border-color:var(--blue)}
+.it.sg .ck::after,.it.sb .ck::after{content:'';width:7px;height:4px;border-left:1.5px solid #000;border-bottom:1.5px solid #000;transform:rotate(-45deg) translate(1px,-1px);position:absolute}
+.it.sb .ck::after{border-left-color:#fff;border-bottom-color:#fff}
+.ii{flex:1;min-width:0}.im{font-size:12px;font-weight:600;font-family:var(--mono)}.is{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.bdg{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500;flex-shrink:0}
+.bg{background:var(--gdim);color:var(--green);border:1px solid var(--gbdr)}
+.br{background:var(--rdim);color:var(--red);border:1px solid var(--rbdr)}
+.bb{background:var(--bdim);color:var(--blue);border:1px solid var(--bbdr)}
+.by{background:var(--ydim);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.cnt{font-size:11px;color:var(--muted);margin-top:8px}
+.cg{color:var(--green);font-weight:600}.cb{color:var(--blue);font-weight:600}
+
+/* ── WABA groups ── */
+.wg{margin-bottom:12px}
+.wg-head{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--s3);border:1px solid var(--border);border-radius:7px 7px 0 0;border-bottom:none}
+.wg-name{font-size:11px;font-weight:600;color:var(--dim);font-family:var(--mono)}
+.wg-acts{display:flex;gap:6px}
+.wg-lst{border:1px solid var(--border);border-radius:0 0 7px 7px;padding:6px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.wg-lst::-webkit-scrollbar{width:3px}.wg-lst::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.wg-loading{padding:10px;text-align:center;font-size:11px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:0 0 7px 7px}
+
+/* ── Two col ── */
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* ── Preview WhatsApp ── */
+.pvbox{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:11px}
+.pimg{width:100%;height:76px;background:var(--s3);border-radius:6px;margin-bottom:7px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pimg img{width:100%;height:100%;object-fit:cover}
+.pph{font-size:11px;color:var(--muted)}.ptxt{font-size:12px;line-height:1.6;white-space:pre-wrap}.pft{font-size:11px;color:var(--muted);margin-top:4px}.pbtn{font-size:12px;color:var(--blue);text-align:center;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+
+/* ── Pills ── */
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{font-size:11px;font-family:var(--mono);padding:3px 9px;border-radius:20px}
+.pg{background:var(--gdim);color:var(--green);border:1px solid var(--gbdr)}.pb{background:var(--bdim);color:var(--blue);border:1px solid var(--bbdr)}
+
+/* ── Status ── */
+.sts{border-radius:8px;padding:11px 13px;margin-top:11px;display:none;gap:8px;align-items:flex-start}
+.sts.show{display:flex}.sts.ok{background:var(--gdim);border:1px solid var(--gbdr)}.sts.err{background:var(--rdim);border:1px solid var(--rbdr)}.sts.wait{background:var(--ydim);border:1px solid rgba(245,158,11,.25)}
+.si{font-size:15px;flex-shrink:0}.st{font-size:12px;font-weight:600}.sts.ok .st{color:var(--green)}.sts.err .st{color:var(--red)}.sts.wait .st{color:var(--yellow)}.sm{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.empty{padding:14px;text-align:center;color:var(--muted);font-size:11px}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.warn{background:var(--rdim);border:1px solid var(--rbdr);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--red);margin-top:8px}
+
+/* ── Phone mockup ── */
+.phone{background:#0a1929;border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;position:sticky;top:20px}
+.phone-hdr{font-size:10px;color:var(--muted);text-align:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.bubble{background:#1a2d1a;border-radius:4px 12px 12px 12px;padding:10px 12px;max-width:260px;font-size:12px;line-height:1.6;color:var(--text)}
+.bubble-img{width:100%;height:110px;background:var(--s3);border-radius:8px 8px 0 0;overflow:hidden;display:flex;align-items:center;justify-content:center;margin:-10px -12px 10px;width:calc(100% + 24px)}
+.bubble-img img{width:100%;height:100%;object-fit:cover}
+.bubble-footer{font-size:11px;color:var(--muted);margin-top:6px}
+.bubble-btn{text-align:center;color:var(--blue);font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.bubble-time{font-size:10px;color:var(--muted);text-align:right;margin-top:4px}
+
+@media(max-width:700px){
+  .sidebar{width:56px}
+  .sb-logo-text,.sb-logo-sub,.sb-item span,.sb-label{display:none}
+  .sb-item{justify-content:center;padding:10px}
+  .main{margin-left:56px;padding:16px}
+  .tcol{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Config screen -->
+<div class="cfg-screen" id="cfgScreen">
+  <div class="cfg-box">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div class="sb-logo-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+      <div><div style="font-size:15px;font-weight:700">Infobip WhatsApp</div><div style="font-size:11px;color:var(--muted)">Configure suas credenciais</div></div>
+    </div>
+    <div class="fld"><label>API Key</label><input type="text" id="cfgAK" placeholder="5d85f30d..."/></div>
+    <div class="fld"><label>Base URL</label><input type="text" id="cfgBU" placeholder="xxxxx.api.infobip.com"/></div>
+    <div class="fld"><label>Usuário do portal</label><input type="text" id="cfgUser" placeholder="hurley08"/></div>
+    <div class="fld"><label>Senha do portal</label><input type="password" id="cfgPass" placeholder="••••••••"/></div>
+    <button class="btn btn-green" style="width:100%;justify-content:center;padding:12px;font-size:13px" onclick="salvarCfg()">Entrar</button>
+    <div class="cfg-foot">Salvo localmente no navegador · <a onclick="limparCfg()">Trocar de conta</a></div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+    <div>
+      <div class="sb-logo-text">Infobip</div>
+      <div class="sb-logo-sub">WhatsApp Panel</div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-label">Menu</div>
+    <div class="sb-item active" id="nav-campanhas" onclick="navTo('campanhas')">
+      <span class="sb-icon">📤</span><span>Campanhas</span>
+    </div>
+  </div>
+  <div class="sb-foot">
+    <div class="sb-cfg" onclick="limparCfg()">
+      <span style="font-size:13px">⚙️</span><span style="font-size:11px">Trocar conta</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- ══ PAGE: CAMPANHAS ══ -->
+  <div class="page active" id="page-campanhas">
+    <div class="pg-hdr">
+      <h2>Campanhas</h2>
+      <p>Criação de transmissões em massa via WhatsApp</p>
+    </div>
+
+    <div class="snav">
+      <div class="sd act" id="sd1"><div class="sn">1</div><span>Remetentes</span></div><div class="sl"></div>
+      <div class="sd" id="sd2"><div class="sn">2</div><span>Templates</span></div><div class="sl"></div>
+      <div class="sd" id="sd3"><div class="sn">3</div><span>Conteúdo</span></div><div class="sl"></div>
+      <div class="sd" id="sd4"><div class="sn">4</div><span>Criar</span></div>
+    </div>
+
+    <!-- STEP 1: Senders -->
+    <div class="step act" id="step1">
+      <div class="card">
+        <div class="chead">
+          <span>Remetentes disponíveis</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-all" onclick="togAllS()">✓ Todos</button>
+            <button class="btn btn-all" style="background:var(--bdim);border-color:var(--bbdr);color:var(--blue)" onclick="togAtivos()">✓ Apenas ativos</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="desAllS()">✕ Limpar</button>
+          </div>
+        </div>
+        <div class="selbar">
+          <input id="sSearch" type="text" placeholder="Filtrar por número ou nome..." oninput="filterS()"/>
+          <button class="btn btn-green" id="btnBS" onclick="buscarSenders()">
+            <div class="spin"></div><span class="lbl">Buscar remetentes</span>
+          </button>
+        </div>
+        <div id="sendersList"><div class="empty">Clique em "Buscar remetentes" para carregar</div></div>
+        <div class="cnt">Selecionados: <span class="cg" id="cntS">0</span> de <span id="totalS">0</span></div>
+      </div>
+      <div class="brow">
+        <button class="btn btn-green" id="btnGo2" onclick="goStep(2)" disabled>
+          <span class="lbl">Próximo — buscar templates →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Templates -->
+    <div class="step" id="step2">
+      <div class="card">
+        <div class="chead">
+          <span>Templates por WABA</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-all btn-all-b" onclick="togAllT()">✓ Todos</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="desAllT()">✕ Limpar</button>
+          </div>
+        </div>
+        <div class="selbar">
+          <input id="tSearch" type="text" placeholder="Filtrar por nome do template..." oninput="filterT()"/>
+          <button class="btn btn-blue" id="btnBT" onclick="buscarTemplates()">
+            <div class="spin spin-w"></div><span class="lbl">Buscar templates</span>
+          </button>
+        </div>
+        <div id="templatesByWaba"><div class="empty">Clique em "Buscar templates" para carregar</div></div>
+        <div class="cnt">Selecionados: <span class="cb" id="cntT">0</span></div>
+      </div>
+      <div class="brow">
+        <button class="btn btn-ghost" onclick="goStep(1)"><span class="lbl">← Voltar</span></button>
+        <button class="btn btn-blue" id="btnGo3" onclick="goStep(3)" disabled>
+          <span class="lbl">Próximo — preencher conteúdo →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Conteúdo -->
+    <div class="step" id="step3">
+      <div class="card">
+        <div class="chead">Nome da campanha</div>
+        <div class="fld">
+          <input type="text" id="campaignBaseName" placeholder="Ex: Promoção Julho"/>
+          <div class="hint">Nome final: <strong style="color:var(--dim)">[nome] [4 últimos dígitos] [template]</strong></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chead">URL da imagem (header) — mesma para todos</div>
+        <div class="fld">
+          <input type="url" id="mediaUrl" placeholder="https://i.ibb.co/exemplo/imagem.jpg" oninput="updatePrevs()"/>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chead">Destinatários — Upload CSV/TXT (opcional)</div>
+        <div class="fld">
+          <input type="file" id="csvFile" accept=".csv,.txt" onchange="importCSV(event)" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px;width:100%;color:var(--text);font-size:12px"/>
+        </div>
+        <div id="csvInfo" class="hint">Nenhum arquivo carregado — as campanhas serão criadas sem destinatários</div>
+        <div id="csvWarn"></div>
+      </div>
+      <div id="varCards"></div>
+      <div class="brow">
+        <button class="btn btn-ghost" onclick="goStep(2)"><span class="lbl">← Voltar</span></button>
+        <button class="btn btn-green" onclick="goStep(4)"><span class="lbl">Revisar e criar →</span></button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Criar -->
+    <div class="step" id="step4">
+      <div class="card">
+        <div class="chead">Resumo</div>
+        <div style="margin-bottom:12px"><label style="margin-bottom:6px;display:block">Remetentes (<span id="revCS">0</span>)</label><div class="pills" id="revS"></div></div>
+        <div style="margin-bottom:12px"><label style="margin-bottom:6px;display:block">Templates (<span id="revCT">0</span>)</label><div class="pills" id="revT"></div></div>
+        <div><label style="margin-bottom:4px;display:block">Total de transmissões: <strong id="revTotal" style="color:var(--green)">0</strong></label></div>
+        <div id="revContatos" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><div class="chead">Prévia</div><div id="revPrev"></div></div>
+      <div class="brow">
+        <button class="btn btn-ghost" onclick="goStep(3)"><span class="lbl">← Voltar</span></button>
+        <button class="btn btn-green" id="btnCriar" onclick="criarCampanhas()">
+          <div class="spin"></div><span class="lbl">🚀 Criar transmissões</span>
+        </button>
+      </div>
+      <div class="sts" id="stsBox">
+        <div class="si" id="sIcon"></div>
+        <div><div class="st" id="sTitle"></div><div class="sm" id="sMsg"></div></div>
+      </div>
+    </div>
+  </div><!-- /page-campanhas -->
+
+
+
+</div><!-- /main -->
+
+<script>
+const WH = 'https://rarelookingorca-n8n.cloudfy.live/webhook/infobip-campanha';
+let AK = '', BU = '', PORTAL_USER = '', PORTAL_PASS = '';
+
+// ─ Config ─
+function salvarCfg() {
+  var ak = document.getElementById('cfgAK').value.trim();
+  var bu = document.getElementById('cfgBU').value.trim().replace('https://', '');
+  var user = document.getElementById('cfgUser').value.trim();
+  var pass = document.getElementById('cfgPass').value;
+  if (!ak || !bu || !user || !pass) { alert('Preencha todos os campos!'); return; }
+  localStorage.setItem('ib_ak', ak); localStorage.setItem('ib_bu', bu);
+  localStorage.setItem('ib_user', user); localStorage.setItem('ib_pass', pass);
+  AK = ak; BU = bu; PORTAL_USER = user; PORTAL_PASS = pass;
+  document.getElementById('cfgScreen').style.display = 'none';
+}
+
+function limparCfg() {
+  ['ib_ak','ib_bu','ib_user','ib_pass'].forEach(function(k) { localStorage.removeItem(k); });
+  AK = ''; BU = ''; PORTAL_USER = ''; PORTAL_PASS = '';
+  ['cfgAK','cfgBU','cfgUser','cfgPass'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('cfgScreen').style.display = 'flex';
+}
+
+(function initCfg() {
+  var ak = localStorage.getItem('ib_ak'), bu = localStorage.getItem('ib_bu');
+  var user = localStorage.getItem('ib_user'), pass = localStorage.getItem('ib_pass');
+  if (ak && bu && user && pass) {
+    AK = ak; BU = bu; PORTAL_USER = user; PORTAL_PASS = pass;
+    document.getElementById('cfgScreen').style.display = 'none';
+  } else {
+    if (ak) document.getElementById('cfgAK').value = ak;
+    if (bu) document.getElementById('cfgBU').value = bu;
+    if (user) document.getElementById('cfgUser').value = user;
+  }
+})();
+
+// ─ Navigation ─
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.sb-item').forEach(function(i) { i.classList.remove('active'); });
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+}
+
+// ─ State (campanhas) ─
+var aS = [], fS = [], sS = [];
+var wabaT = {};
+var sT = [];
+var allContacts = [];
+var cur = 1;
+
+// ─ STEP 1: Senders ─
+async function buscarSenders() {
+  var btn = document.getElementById('btnBS');
+  btn.classList.add('loading'); btn.disabled = true;
+  document.getElementById('sendersList').innerHTML = '<div class="empty">Buscando...</div>';
+  try {
+    var r = await fetch(WH, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'listSenders', apiKey: AK, baseUrl: BU }) });
+    var d = await r.json();
+    aS = (d.senders && d.senders.results) || [];
+    fS = aS.slice();
+    document.getElementById('sSearch').value = '';
+    renderS();
+  } catch(e) {
+    document.getElementById('sendersList').innerHTML = '<div class="empty">Erro ao buscar. Verifique o N8N.</div>';
+  }
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+function filterS() {
+  if (!aS.length) return;
+  var q = document.getElementById('sSearch').value.toLowerCase().trim();
+  fS = q ? aS.filter(function(s) { return s.sender.includes(q) || (s.displayName || '').toLowerCase().includes(q); }) : aS.slice();
+  renderS();
+}
+
+function renderS() {
+  var el = document.getElementById('sendersList');
+  if (!fS.length) { el.innerHTML = '<div class="empty">Nenhum remetente encontrado</div>'; return; }
+  var html = '<div class="lst">';
+  fS.forEach(function(s) {
+    var sel = sS.includes(s.sender);
+    var st = (s.connectionStatus || s.registrationStatus || '').toUpperCase();
+    var isAtivo = st === 'FINISHED' || st === 'CONNECTED' || st === 'UNKNOWN' || st === '';
+    var bc = isAtivo ? 'bg' : st === 'BANNED' ? 'br' : 'by';
+    var bt = isAtivo ? 'Ativo' : st || '?';
+    html += '<div class="it ' + (sel ? 'sg' : '') + '" onclick="togS(\'' + s.sender + '\')">' +
+      '<div class="ck"></div>' +
+      '<div class="ii"><div class="im">+' + s.sender + '</div><div class="is">' + (s.displayName || 'WhatsApp') + ' · WABA ' + (s.whatsAppBusinessAccountId || '') + '</div></div>' +
+      '<div class="bdg ' + bc + '">' + bt + '</div></div>';
+  });
+  html += '</div>';
+  var lst = el.querySelector('.lst');
+  var scrollTop = lst ? lst.scrollTop : 0;
+  el.innerHTML = html;
+  var newLst = el.querySelector('.lst');
+  if (newLst) newLst.scrollTop = scrollTop;
+  document.getElementById('cntS').textContent = sS.length;
+  document.getElementById('totalS').textContent = aS.length;
+  document.getElementById('btnGo2').disabled = sS.length === 0;
+}
+
+function togS(num) { sS.includes(num) ? sS = sS.filter(function(x) { return x !== num; }) : sS.push(num); renderS(); }
+function togAllS() { var all = fS.map(function(s) { return s.sender; }); var allSel = all.every(function(n) { return sS.includes(n); }); if (allSel) sS = sS.filter(function(n) { return !all.includes(n); }); else all.forEach(function(n) { if (!sS.includes(n)) sS.push(n); }); renderS(); }
+function togAtivos() { var ativos = fS.filter(function(s) { var st = (s.connectionStatus || s.registrationStatus || '').toUpperCase(); return st === 'FINISHED' || st === 'CONNECTED' || st === 'UNKNOWN' || st === ''; }).map(function(s) { return s.sender; }); var allSel = ativos.every(function(n) { return sS.includes(n); }); if (allSel) sS = sS.filter(function(n) { return !ativos.includes(n); }); else ativos.forEach(function(n) { if (!sS.includes(n)) sS.push(n); }); renderS(); }
+function desAllS() { sS = []; renderS(); }
+
+// ─ STEP 2: Templates ─
+async function buscarTemplates() {
+  if (!sS.length) return;
+  var btn = document.getElementById('btnBT');
+  btn.classList.add('loading'); btn.disabled = true;
+  var wabaMap = {};
+  sS.forEach(function(num) {
+    var s = aS.find(function(x) { return x.sender === num; });
+    if (!s) return;
+    var wid = String(s.whatsAppBusinessAccountId || 'unknown');
+    if (!wabaMap[wid]) wabaMap[wid] = { name: s.whatsAppBusinessAccountName || wid, senders: [], firstSender: num };
+    wabaMap[wid].senders.push(num);
+  });
+  var html = '';
+  Object.entries(wabaMap).forEach(function(e) {
+    var wid = e[0], w = e[1];
+    html += '<div class="wg" id="wg_' + wid + '"><div class="wg-head"><span class="wg-name">WABA: ' + w.name + ' · ' + w.senders.length + ' número(s)</span><div class="wg-acts"><button class="btn btn-all btn-all-b" style="padding:4px 8px;font-size:10px" onclick="togWaba(\'' + wid + '\',true)">✓ Todos</button><button class="btn btn-ghost" style="padding:4px 8px;font-size:10px" onclick="togWaba(\'' + wid + '\',false)">✕</button></div></div><div class="wg-loading">Carregando...</div></div>';
+  });
+  document.getElementById('templatesByWaba').innerHTML = html || '<div class="empty">Nenhum WABA encontrado</div>';
+  wabaT = {};
+  for (var i = 0; i < Object.entries(wabaMap).length; i++) {
+    var entry = Object.entries(wabaMap)[i]; var wid = entry[0], w = entry[1];
+    try {
+      var r = await fetch(WH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'listTemplates', apiKey: AK, baseUrl: BU, sender: w.firstSender }) });
+      var d = await r.json();
+      var approved = (d.templates || []).filter(function(t) { return t.status === 'APPROVED'; });
+      wabaT[wid] = Object.assign({}, w, { templates: approved, filtered: approved.slice() });
+    } catch(e) { wabaT[wid] = Object.assign({}, w, { templates: [], filtered: [] }); }
+    renderWG(wid);
+  }
+  btn.classList.remove('loading'); btn.disabled = false;
+  updateCntT();
+}
+
+function filterT() {
+  var q = document.getElementById('tSearch').value.toLowerCase();
+  Object.keys(wabaT).forEach(function(wid) { wabaT[wid].filtered = q ? wabaT[wid].templates.filter(function(t) { return t.name.toLowerCase().includes(q); }) : wabaT[wid].templates.slice(); renderWG(wid); });
+}
+
+function renderWG(wid) {
+  var w = wabaT[wid]; var container = document.getElementById('wg_' + wid); if (!container) return;
+  var old = container.querySelector('.wg-loading, .wg-lst');
+  var html;
+  if (!w.filtered.length) { html = '<div class="wg-loading">Nenhum template aprovado</div>'; }
+  else {
+    html = '<div class="wg-lst">';
+    w.filtered.forEach(function(t) {
+      var sel = sT.find(function(x) { return x.name === t.name && x._waba === wid; });
+      var body = ((t.structure && t.structure.body) || '').replace(/\n/g, ' ').substring(0, 50) + '...';
+      var hasImg = t.structure && t.structure.header && t.structure.header.format === 'IMAGE';
+      html += '<div class="it ' + (sel ? 'sb' : '') + '" onclick="togT(\'' + wid + '\',\'' + t.name + '\')">' +
+        '<div class="ck"></div><div class="ii"><div class="im">' + t.name + '</div><div class="is">' + body + '</div></div>' +
+        (hasImg ? '<div class="bdg bb">IMG</div>' : '') + '</div>';
+    });
+    html += '</div>';
+  }
+  if (old) old.outerHTML = html;
+}
+
+function togT(wid, name) {
+  var w = wabaT[wid]; var t = w && w.templates.find(function(x) { return x.name === name; }); if (!t) return;
+  var lst = document.querySelector('#wg_' + wid + ' .wg-lst'); var scrollTop = lst ? lst.scrollTop : 0;
+  var idx = sT.findIndex(function(x) { return x.name === name && x._waba === wid; });
+  if (idx >= 0) sT.splice(idx, 1); else sT.push(Object.assign({}, t, { _waba: wid, _senders: w.senders }));
+  renderWG(wid); updateCntT();
+  var lst2 = document.querySelector('#wg_' + wid + ' .wg-lst'); if (lst2) lst2.scrollTop = scrollTop;
+}
+
+function togWaba(wid, sel) { var w = wabaT[wid]; if (!w) return; sT = sT.filter(function(x) { return x._waba !== wid; }); if (sel) w.filtered.forEach(function(t) { sT.push(Object.assign({}, t, { _waba: wid, _senders: w.senders })); }); renderWG(wid); updateCntT(); }
+function togAllT() { Object.keys(wabaT).forEach(function(wid) { togWaba(wid, true); }); }
+function desAllT() { sT = []; Object.keys(wabaT).forEach(function(wid) { renderWG(wid); }); updateCntT(); }
+function updateCntT() { document.getElementById('cntT').textContent = sT.length; document.getElementById('btnGo3').disabled = sT.length === 0; }
+
+// ─ STEP 3: Conteúdo ─
+function getVarNums(t) { var body = (t.structure && t.structure.body) || ''; var matches = body.match(/\{\{(\d+)\}\}/g) || []; var nums = []; matches.forEach(function(m) { var n = m.replace(/[{}]/g, ''); if (!nums.includes(n)) nums.push(n); }); return nums.sort(function(a, b) { return +a - +b; }); }
+function getGK(t) { return 'gk_' + getVarNums(t).join('_'); }
+function getPH(t) { var gk = getGK(t); return getVarNums(t).map(function(n) { var el = document.getElementById(gk + '_v' + n); return el ? el.value : ''; }); }
+
+function buildVars() {
+  if (!sT.length) { document.getElementById('varCards').innerHTML = '<div class="empty">Selecione ao menos um template</div>'; return; }
+  var existing = {};
+  sT.forEach(function(t) { var gk = getGK(t); getVarNums(t).forEach(function(n) { var el = document.getElementById(gk + '_v' + n); if (el) existing[gk + '_v' + n] = el.value; }); });
+  var grupos = {};
+  sT.forEach(function(t) { var nums = getVarNums(t); var key = nums.join(','); var gk = getGK(t); if (!grupos[key]) grupos[key] = { nums: nums, gk: gk, templates: [] }; grupos[key].templates.push(t); });
+  var img = (document.getElementById('mediaUrl') || {}).value || '';
+  var html = '';
+  Object.entries(grupos).forEach(function(e) {
+    var key = e[0], g = e[1]; var gk = g.gk;
+    var pills = g.templates.map(function(t) { return '<span class="pill pb" style="font-size:10px;padding:2px 7px">' + t.name + '</span>'; }).join('');
+    var fields = g.nums.length ? g.nums.map(function(n) { var val = existing[gk + '_v' + n] || ''; return '<div class="fld"><label>Variável {{' + n + '}}</label><input type="text" id="' + gk + '_v' + n + '" placeholder="Variável ' + n + '" oninput="updatePrevs()" value="' + val + '"/></div>'; }).join('') : '<div class="empty" style="padding:8px">Sem variáveis</div>';
+    html += '<div class="tcol"><div class="card" style="margin-bottom:0"><div class="chead">' + g.nums.length + ' variável(is)</div><div class="pills" style="margin-bottom:12px">' + pills + '</div>' + fields + '</div><div class="card" style="margin-bottom:0"><div class="chead">Prévia — ' + g.templates[0].name + '</div><div id="prev_' + gk + '">' + mkPrev(g.templates[0], img, gk) + '</div></div></div>';
+  });
+  document.getElementById('varCards').innerHTML = html;
+}
+
+function updatePrevs() {
+  var img = (document.getElementById('mediaUrl') || {}).value || '';
+  var grupos = {};
+  sT.forEach(function(t) { var key = getVarNums(t).join(','); if (!grupos[key]) grupos[key] = { t: t, gk: getGK(t) }; });
+  Object.values(grupos).forEach(function(g) { var el = document.getElementById('prev_' + g.gk); if (el) el.innerHTML = mkPrev(g.t, img, g.gk); });
+  var rev = document.getElementById('revPrev');
+  if (rev && sT.length) rev.innerHTML = mkPrev(sT[0], img, getGK(sT[0]));
+}
+
+function mkPrev(t, img, gk) {
+  var body = (t.structure && t.structure.body) || '';
+  var matches = body.match(/\{\{(\d+)\}\}/g) || [];
+  matches.forEach(function(m) { var n = m.replace(/[{}]/g, ''); var el = document.getElementById(gk + '_v' + n); var v = el ? el.value : m; body = body.split(m).join('<strong>' + (v || m) + '</strong>'); });
+  var ft = (t.structure && t.structure.footer) || '';
+  var bt = t.structure && t.structure.buttons && t.structure.buttons[0];
+  var hi = t.structure && t.structure.header && t.structure.header.format === 'IMAGE';
+  return '<div class="pvbox">' + (hi ? '<div class="pimg">' + (img ? '<img src="' + img + '"/>' : '<span class="pph">Imagem aqui</span>') + '</div>' : '') + '<div class="ptxt">' + body.replace(/\n/g, '<br>') + '</div>' + (ft ? '<div class="pft">' + ft + '</div>' : '') + (bt ? '<div class="pbtn">' + bt.text + '</div>' : '') + '</div>';
+}
+
+// ─ CSV ─
+function importCSV(e) {
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var text = ev.target.result; var lines = text.split('\n'); allContacts = [];
+    lines.forEach(function(line) { var col = line.trim().split(',')[0]; var num = col.replace(/[^0-9]/g, ''); if (num.length >= 10) allContacts.push(num); });
+    document.getElementById('csvInfo').innerHTML = '<span style="color:var(--green);font-weight:600">' + allContacts.length + ' contatos</span> carregados de ' + file.name;
+    checkDistribuicao();
+  };
+  reader.readAsText(file); e.target.value = '';
+}
+
+function checkDistribuicao() {
+  var warn = document.getElementById('csvWarn');
+  if (!allContacts.length || !sS.length) { warn.innerHTML = ''; return; }
+  var porSender = Math.floor(allContacts.length / sS.length); var resto = allContacts.length % sS.length;
+  var ok = porSender <= 20000; var cor = ok ? 'var(--green)' : 'var(--red)';
+  warn.innerHTML = '<div style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px;font-size:11px;color:var(--dim);margin-top:8px"><strong style="color:var(--text)">' + allContacts.length + '</strong> contatos ÷ <strong style="color:var(--green)">' + sS.length + '</strong> senders = <strong style="color:' + cor + '">' + porSender + '</strong> por campanha' + (resto ? ' (+ ' + resto + ' no último)' : '') + (ok ? ' ✅' : ' ❌') + '</div>' + (!ok ? '<div class="warn">⚠️ Limite de 20.000 por campanha excedido! Adicione pelo menos <strong>' + Math.ceil(allContacts.length / 20000) + '</strong> senders.</div>' : '');
+}
+
+// ─ STEP 4: Review + Create ─
+function buildReview() {
+  var total = 0;
+  sT.forEach(function(t) { var waba = t._waba; var ok = sS.filter(function(s) { var info = aS.find(function(x) { return x.sender === s; }); return info && String(info.whatsAppBusinessAccountId) === String(waba); }); total += ok.length; });
+  document.getElementById('revCS').textContent = sS.length;
+  document.getElementById('revCT').textContent = sT.length;
+  document.getElementById('revTotal').textContent = total;
+  document.getElementById('revS').innerHTML = sS.map(function(s) { return '<div class="pill pg">+' + s + '</div>'; }).join('');
+  document.getElementById('revT').innerHTML = sT.map(function(t) { return '<div class="pill pb">' + t.name + '</div>'; }).join('');
+  var rc = document.getElementById('revContatos');
+  if (allContacts.length && sS.length) { var por = Math.floor(allContacts.length / sS.length); rc.innerHTML = '<div style="font-size:11px;color:var(--dim);margin-top:4px">' + allContacts.length + ' contatos · ' + por + ' por campanha</div>'; }
+  else { rc.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-top:4px">Sem destinatários — campanhas criadas como rascunho limpo</div>'; }
+  var img = (document.getElementById('mediaUrl') || {}).value || '';
+  var rev = document.getElementById('revPrev');
+  if (rev && sT.length) rev.innerHTML = mkPrev(sT[0], img, getGK(sT[0]));
+}
+
+async function criarCampanhas() {
+  var btn = document.getElementById('btnCriar');
+  btn.classList.add('loading'); btn.disabled = true;
+  var jobs = [];
+  sT.forEach(function(t) { var waba = t._waba; var sendersOk = sS.filter(function(s) { var info = aS.find(function(x) { return x.sender === s; }); return info && String(info.whatsAppBusinessAccountId) === String(waba); }); sendersOk.forEach(function(sender) { jobs.push({ sender: sender, t: t, senderIdx: sS.indexOf(sender) }); }); });
+  var total = jobs.length; var totalContatos = allContacts.length; var totalSenders = sS.length;
+  var porSender = totalSenders > 0 && totalContatos > 0 ? Math.floor(totalContatos / totalSenders) : 0;
+  setSts('wait', 'Criando ' + total + ' transmissão(ões)...', '0 de ' + total + ' criada(s)');
+  var ok = 0, fail = 0, n = 0;
+  for (var i = 0; i < jobs.length; i++) {
+    var job = jobs[i]; var sender = job.sender, t = job.t, si = job.senderIdx;
+    var img = (document.getElementById('mediaUrl') || {}).value || '';
+    var hi = t.structure && t.structure.header && t.structure.header.format === 'IMAGE';
+    var ph = getPH(t); var baseName = (document.getElementById('campaignBaseName') || {}).value || 'Campanha';
+    var name = baseName + ' ' + sender.slice(-4) + ' ' + t.name;
+    var fatia = null;
+    if (allContacts.length > 0 && porSender > 0) { var inicio = si * porSender; var fim = si === totalSenders - 1 ? totalContatos : inicio + porSender; fatia = allContacts.slice(inicio, fim); }
+    try {
+      var payload = { action: 'createCampaign', apiKey: AK, baseUrl: BU, username: PORTAL_USER, password: PORTAL_PASS, campaignName: name, sender: sender, templateName: t.name, language: t.language || 'pt_BR', placeholders: ph, imageUrl: hi ? img : undefined, buttonUrl: (t.structure && t.structure.buttons && t.structure.buttons[0] && t.structure.buttons[0].url) || '' };
+      if (fatia && fatia.length > 0) payload.phoneNumbers = fatia;
+      var r = await fetch(WH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      var d = await r.json();
+      (d.status === 200 && d.body && d.body.status === 'DRAFT') ? ok++ : fail++;
+    } catch(e) { fail++; }
+    n++; setSts('wait', 'Criando transmissões...', n + ' de ' + total + ' · ✅ ' + ok + ' · ❌ ' + fail);
+  }
+  btn.classList.remove('loading'); btn.disabled = false;
+  fail === 0 ? setSts('ok', ok + ' transmissão(ões) criada(s)!', 'Acesse Transmissão no portal Infobip para disparar.') : setSts('err', ok + ' criada(s), ' + fail + ' falhou', 'Verifique os logs no N8N.');
+}
+
+function setSts(type, title, msg) {
+  var b = document.getElementById('stsBox');
+  b.className = 'sts show ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : 'wait');
+  document.getElementById('sIcon').textContent = type === 'ok' ? '✅' : type === 'err' ? '❌' : '⏳';
+  document.getElementById('sTitle').textContent = title; document.getElementById('sMsg').textContent = msg;
+}
+
+function goStep(n) {
+  if (n === 3) buildVars(); if (n === 4) buildReview();
+  document.getElementById('step' + cur).classList.remove('act');
+  document.getElementById('step' + n).classList.add('act');
+  for (var i = 1; i <= 4; i++) { var d = document.getElementById('sd' + i); d.className = 'sd' + (i < n ? ' done' : i === n ? ' act' : ''); d.querySelector('.sn').textContent = i < n ? '✓' : i; }
+  cur = n; window.scrollTo(0, 0);
+}
+
+<\/script>
+</body>
+</html></script>
+
 </body>
 </html>
