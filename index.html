@@ -491,24 +491,34 @@ function pagBuscar() {
   if(lista){lista.style.display='none';lista.innerHTML='';}
   if(ac) ac.style.display='none';
   _pw = []; pagAtuaBtn();
-  fetch('https://graph.facebook.com/v21.0/'+bid+'/owned_whatsapp_business_accounts?fields=id,name,currency&limit=100&access_token='+encodeURIComponent(tok))
-  .then(function(r){return r.json();})
-  .then(function(j){
+  var _payId='', _bilId='';
+  Promise.all([
+    fetch('https://graph.facebook.com/v21.0/'+bid+'/owned_whatsapp_business_accounts?fields=id,name,currency&limit=100&access_token='+encodeURIComponent(tok)).then(function(r){return r.json();}),
+    fetch('https://graph.facebook.com/v21.0/'+bid+'/payment_accounts?fields=id,name&access_token='+encodeURIComponent(tok)).then(function(r){return r.json();}).catch(function(){return {};})
+  ])
+  .then(function(results){
+    var j=results[0], pa=results[1];
     if(j.error){if(st)st.textContent='Erro: '+j.error.message;return;}
     _pw = j.data||[];
     if(!_pw.length){if(st)st.textContent='Nenhuma WABA encontrada.';return;}
-    var sem = _pw.filter(function(w){return !w.payment_configuration;}).length;
+    // pega payment_account_id do primeiro payment_account disponível
+    if(pa&&pa.data&&pa.data.length) _payId=pa.data[0].id||'';
+    // billing_account_id = businessId
+    _bilId=bid;
+    var sem = _pw.filter(function(w){return !w.currency;}).length;
     if(st) st.textContent = _pw.length+' WABA(s) — '+sem+' sem pagamento.';
     if(lista){
       lista.innerHTML = _pw.map(function(w,i){
-        var hp=!!w.payment_configuration;
+        var hp=!!w.currency;
         return '<div id="pr-'+i+'" style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;background:var(--bg);border:1px solid var(--border);">'
           +'<input type="checkbox" id="pag-chk-'+i+'" '+(hp?'disabled':'onchange="pagChk('+i+')"')+' style="width:15px;height:15px;">'
           +'<div><div style="font-size:13px;font-weight:600;">'+(w.name||'Sem nome')+(hp?' <span style="font-size:10px;color:var(--accent);">&#x2713; ok</span>':'')+'</div>'
           +'<div style="font-size:11px;color:var(--dim);font-family:monospace;">'+w.id+(w.currency?' · '+w.currency:'')+'</div></div>'
-          +(hp?'<div></div>':'<div style="display:none;grid-template-columns:1fr 1fr;gap:6px;" id="pi-'+i+'">'
-            +'<input id="pp-'+i+'" type="text" placeholder="payment_account_id" style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--dim);font-size:11px;font-family:monospace;width:150px;box-sizing:border-box;">'
-            +'<input id="pb-'+i+'" type="text" placeholder="billing_account_id" style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--dim);font-size:11px;font-family:monospace;width:150px;box-sizing:border-box;">'
+          +(hp?'<div></div>':'<div style="display:none;flex-direction:column;gap:4px;" id="pi-'+i+'">'
+            +'<div style="font-size:10px;color:var(--dim);">payment_account_id: <span style="font-family:monospace;color:var(--text);">'+(_payId||'—')+'</span></div>'
+            +'<div style="font-size:10px;color:var(--dim);">billing_account_id: <span style="font-family:monospace;color:var(--text);">'+(_bilId||'—')+'</span></div>'
+            +'<input type="hidden" id="pp-'+i+'" value="'+(_payId||'')+'">'
+            +'<input type="hidden" id="pb-'+i+'" value="'+(_bilId||'')+'">'
             +'</div>')
           +'</div>';
       }).join('');
@@ -520,11 +530,8 @@ function pagBuscar() {
 }
 function pagChk(i) {
   var chk=document.getElementById('pag-chk-'+i), row=document.getElementById('pr-'+i), pi=document.getElementById('pi-'+i);
-  var pp=document.getElementById('pp-'+i), pb=document.getElementById('pb-'+i);
   if(row) row.style.borderColor=chk.checked?'var(--accent)':'var(--border)';
-  if(pi) pi.style.display=chk.checked?'grid':'none';
-  if(pp){pp.disabled=!chk.checked;pp.style.color=chk.checked?'var(--text)':'var(--dim)';}
-  if(pb){pb.disabled=!chk.checked;pb.style.color=chk.checked?'var(--text)':'var(--dim)';}
+  if(pi) pi.style.display=chk.checked?'flex':'none';
   var tot=_pw.filter(function(w,j){var c=document.getElementById('pag-chk-'+j);return c&&!c.disabled;}).length;
   var sel=_pw.filter(function(w,j){var c=document.getElementById('pag-chk-'+j);return c&&c.checked;}).length;
   var sa=document.getElementById('pag-all'); if(sa) sa.checked=sel>0&&sel===tot;
