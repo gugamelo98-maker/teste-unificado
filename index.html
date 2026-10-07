@@ -516,9 +516,9 @@ function pagBuscar() {
           +'<div style="font-size:11px;color:var(--dim);font-family:monospace;">'+w.id+(w.currency?' · '+w.currency:'')+'</div></div>'
           +(hp?'<div></div>':'<div style="display:none;flex-direction:column;gap:4px;" id="pi-'+i+'">'
             +'<div style="font-size:10px;color:var(--dim);">payment_account_id: <span style="font-family:monospace;color:var(--text);">'+(_payId||'—')+'</span></div>'
-            +'<div style="font-size:10px;color:var(--dim);">billing_account_id: <span style="font-family:monospace;color:var(--text);">'+(_bilId||'—')+'</span></div>'
+            +'<div style="font-size:10px;color:var(--dim);">billing_account_id: <span style="font-family:monospace;color:var(--text);">'+w.id+'</span></div>'
             +'<input type="hidden" id="pp-'+i+'" value="'+(_payId||'')+'">'
-            +'<input type="hidden" id="pb-'+i+'" value="'+(_bilId||'')+'">'
+            +'<input type="hidden" id="pb-'+i+'" value="'+w.id+'">'
             +'</div>')
           +'</div>';
       }).join('');
