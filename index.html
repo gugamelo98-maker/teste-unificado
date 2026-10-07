@@ -562,8 +562,7 @@ function pagProcessar() {
   _pw.forEach(function(w,i){
     var chk=document.getElementById('pag-chk-'+i); if(!chk||!chk.checked) return;
     var pp=(document.getElementById('pp-'+i)||{}).value||'';
-    var pb2=(document.getElementById('pb-'+i)||{}).value||'';
-    if(!pp||!pb2){alert('Preencha os IDs para: '+(w.name||w.id));throw new Error('IDs faltando');}
+    var pb2=(document.getElementById('pb-'+i)||{}).value||w.id||'';
     pids.push(pp.trim()); bids.push(pb2.trim());
   });
   var man=document.getElementById('pag-ids');
