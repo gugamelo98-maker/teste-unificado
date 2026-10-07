@@ -491,7 +491,7 @@ function pagBuscar() {
   if(lista){lista.style.display='none';lista.innerHTML='';}
   if(ac) ac.style.display='none';
   _pw = []; pagAtuaBtn();
-  fetch('https://graph.facebook.com/v21.0/'+bid+'/owned_whatsapp_business_accounts?fields=id,name,currency,payment_configuration&limit=100&access_token='+encodeURIComponent(tok))
+  fetch('https://graph.facebook.com/v21.0/'+bid+'/owned_whatsapp_business_accounts?fields=id,name,currency&limit=100&access_token='+encodeURIComponent(tok))
   .then(function(r){return r.json();})
   .then(function(j){
     if(j.error){if(st)st.textContent='Erro: '+j.error.message;return;}
