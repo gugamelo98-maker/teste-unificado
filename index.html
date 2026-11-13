@@ -4024,6 +4024,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
         <div id="revContatos" style="margin-top:8px"></div>
       </div>
       <div class="card"><div class="chead">Prévia</div><div id="revPrev"></div></div>
+      <div class="card"><div class="chead">Agendamento (opcional)</div>
+        <label style="margin-bottom:6px;display:block">Iniciar em — deixe vazio para iniciar manualmente depois</label>
+        <input type="datetime-local" id="agSchedule" style="width:100%;max-width:280px">
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Fuso: America/Sao_Paulo. A campanha é criada como rascunho; clique em “Iniciar” para enviar/agendar.</div>
+      </div>
       <div class="brow">
         <button class="btn btn-ghost" onclick="goStep(3)"><span class="lbl">← Voltar</span></button>
         <button class="btn btn-green" id="btnCriar" onclick="criarCampanhas()">
@@ -4034,6 +4039,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
         <div class="si" id="sIcon"></div>
         <div><div class="st" id="sTitle"></div><div class="sm" id="sMsg"></div></div>
       </div>
+      <div id="campList" style="margin-top:12px"></div>
     </div>
   </div><!-- /page-campanhas -->
 
@@ -4110,6 +4116,7 @@ async function buscarSenders() {
     document.getElementById('sendersList').innerHTML = '<div class="empty">Erro ao buscar. Verifique o N8N.</div>';
   }
   btn.classList.remove('loading'); btn.disabled = false;
+  renderCriadas(criadas, startDateTime);
 }
 
 function filterS() {
@@ -4309,6 +4316,9 @@ async function criarCampanhas() {
   sT.forEach(function(t) { var waba = t._waba; var sendersOk = sS.filter(function(s) { var info = aS.find(function(x) { return x.sender === s; }); return info && String(info.whatsAppBusinessAccountId) === String(waba); }); sendersOk.forEach(function(sender) { jobs.push({ sender: sender, t: t, senderIdx: sS.indexOf(sender) }); }); });
   var total = jobs.length; var totalContatos = allContacts.length; var totalSenders = sS.length;
   var porSender = totalSenders > 0 && totalContatos > 0 ? Math.floor(totalContatos / totalSenders) : 0;
+  var agVal = (document.getElementById('agSchedule') || {}).value || '';
+  var startDateTime = agVal ? new Date(agVal).toISOString() : '';
+  var criadas = [];
   setSts('wait', 'Criando ' + total + ' transmissão(ões)...', '0 de ' + total + ' criada(s)');
   var ok = 0, fail = 0, n = 0;
   for (var i = 0; i < jobs.length; i++) {
@@ -4321,10 +4331,12 @@ async function criarCampanhas() {
     if (allContacts.length > 0 && porSender > 0) { var inicio = si * porSender; var fim = si === totalSenders - 1 ? totalContatos : inicio + porSender; fatia = allContacts.slice(inicio, fim); }
     try {
       var payload = { action: 'createCampaign', apiKey: AK, baseUrl: BU, username: PORTAL_USER, password: PORTAL_PASS, campaignName: name, sender: sender, templateName: t.name, language: t.language || 'pt_BR', placeholders: ph, imageUrl: hi ? img : undefined, buttonUrl: (t.structure && t.structure.buttons && t.structure.buttons[0] && t.structure.buttons[0].url) || '' };
+      if (startDateTime) payload.startDateTime = startDateTime;
       if (fatia && fatia.length > 0) payload.phoneNumbers = fatia;
       var r = await fetch(WH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       var d = await r.json();
-      (d.status === 200 && d.body && d.body.status === 'DRAFT') ? ok++ : fail++;
+      var _cid = d.campaignId || (d.body && d.body.id) || null;
+      if (d.status === 200 && d.body && d.body.status === 'DRAFT') { ok++; if (_cid) criadas.push({ id: String(_cid), nome: name }); } else { fail++; }
     } catch(e) { fail++; }
     n++; setSts('wait', 'Criando transmissões...', n + ' de ' + total + ' · ✅ ' + ok + ' · ❌ ' + fail);
   }
@@ -4338,6 +4350,47 @@ function setSts(type, title, msg) {
   document.getElementById('sIcon').textContent = type === 'ok' ? '✅' : type === 'err' ? '❌' : '⏳';
   document.getElementById('sTitle').textContent = title; document.getElementById('sMsg').textContent = msg;
 }
+
+function _esc(x){ return String(x==null?'':x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function renderCriadas(lista, agendado){
+  var box = document.getElementById('campList'); if (!box) return;
+  if (!lista || !lista.length) { box.innerHTML=''; return; }
+  var h = '<div class="card"><div class="chead">Campanhas criadas (' + lista.length + ')' + (agendado ? (' · agendadas para ' + new Date(agendado).toLocaleString('pt-BR')) : '') + '</div>';
+  if (lista.length > 1) { h += '<button class="btn btn-green" style="margin-bottom:10px" onclick="lancarTodas(this)"><span class="lbl">🚀 Iniciar todas</span></button>'; }
+  lista.forEach(function(c){
+    h += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">'
+      + '<div style="flex:1;min-width:160px"><div style="font-weight:600">' + _esc(c.nome) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted)">ID ' + c.id + ' · <span id="stat_' + c.id + '">DRAFT</span> · <span id="cost_' + c.id + '">—</span></div></div>'
+      + '<button class="btn btn-ghost" onclick="verGasto(\'' + c.id + '\',this)"><span class="lbl">💰 Ver gasto</span></button>'
+      + '<button class="btn btn-green" data-id="' + c.id + '" onclick="lancarCampanha(\'' + c.id + '\',this)"><span class="lbl">▶ Iniciar</span></button>'
+      + '</div>';
+  });
+  h += '</div>';
+  box.innerHTML = h;
+}
+async function verGasto(id, btn){
+  btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="lbl">...</span>';
+  try {
+    var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'getCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
+    var d = await r.json();
+    var el = document.getElementById('cost_'+id);
+    if (el) { el.textContent = (d.preco!=null ? ('R$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : '') + (d.status ? (' · ' + d.status) : ''); }
+    var st = document.getElementById('stat_'+id); if (st && d.status) st.textContent = d.status;
+  } catch(e) { var el2 = document.getElementById('cost_'+id); if (el2) el2.textContent = 'erro ao consultar'; }
+  btn.disabled = false; btn.innerHTML = old;
+}
+async function lancarCampanha(id, btn){
+  if (!confirm('Iniciar o envio desta campanha agora?')) return;
+  btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="lbl">Iniciando...</span>';
+  try {
+    var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'launchCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
+    var d = await r.json();
+    var st = document.getElementById('stat_'+id);
+    if (d.ok) { btn.innerHTML = '<span class="lbl">✅ Iniciada</span>'; if (st) st.textContent = 'IN_PROGRESS'; }
+    else { btn.innerHTML = '<span class="lbl">❌ Erro</span>'; btn.disabled = false; }
+  } catch(e) { btn.innerHTML = '<span class="lbl">❌ Erro</span>'; btn.disabled = false; }
+}
+function lancarTodas(btn){ document.querySelectorAll('#campList button[data-id]').forEach(function(b){ if (!b.disabled) b.click(); }); }
 
 function goStep(n) {
   if (n === 3) buildVars(); if (n === 4) buildReview();
