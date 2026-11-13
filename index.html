@@ -4423,13 +4423,30 @@ function renderDisparos(){
       + '</div>';
   }).join('') || '<div style="padding:10px 0;color:var(--muted);font-size:13px">Nenhuma campanha nesse filtro.</div>';
 }
+var _txUSD = null;
+async function _cotacaoUSD(){
+  if (_txUSD) return _txUSD;
+  try { var r = await fetch('https://open.er-api.com/v6/latest/USD'); var j = await r.json(); if (j && j.rates && j.rates.BRL) return (_txUSD = Number(j.rates.BRL)); } catch(e) {}
+  try { var r2 = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL'); var j2 = await r2.json(); if (j2 && j2.USDBRL && j2.USDBRL.bid) return (_txUSD = Number(j2.USDBRL.bid)); } catch(e) {}
+  return null;
+}
 async function verGasto(id, btn){
   btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="lbl">...</span>';
   try {
     var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'getCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
     var d = await r.json();
     var el = document.getElementById('cost_'+id);
-    if (el) { el.textContent = (d.preco!=null ? ('US$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : ''); }
+    if (el) {
+      var txt = 'sem preço';
+      if (d.preco != null) {
+        var usd = Number(d.preco) / 100;            // a Infobip devolve em centavos de dólar
+        var tx = await _cotacaoUSD();
+        var f = function (v, m) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: m }); };
+        txt = tx ? ('R$ ' + f(usd * tx, usd * tx < 1 ? 4 : 2) + ' (US$ ' + f(usd, 6) + ' · dólar a R$ ' + f(tx, 2) + ')')
+                 : ('US$ ' + f(usd, 6) + ' (cotação indisponível)');
+      }
+      el.textContent = txt + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : '');
+    }
     var st = document.getElementById('stat_'+id); if (st && d.status) st.textContent = d.status;
   } catch(e) { var el2 = document.getElementById('cost_'+id); if (el2) el2.textContent = 'erro ao consultar'; }
   btn.disabled = false; btn.innerHTML = old;
