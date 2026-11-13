@@ -4116,7 +4116,6 @@ async function buscarSenders() {
     document.getElementById('sendersList').innerHTML = '<div class="empty">Erro ao buscar. Verifique o N8N.</div>';
   }
   btn.classList.remove('loading'); btn.disabled = false;
-  renderCriadas(criadas, startDateTime);
 }
 
 function filterS() {
@@ -4341,7 +4340,8 @@ async function criarCampanhas() {
     n++; setSts('wait', 'Criando transmissões...', n + ' de ' + total + ' · ✅ ' + ok + ' · ❌ ' + fail);
   }
   btn.classList.remove('loading'); btn.disabled = false;
-  fail === 0 ? setSts('ok', ok + ' transmissão(ões) criada(s)!', 'Acesse Transmissão no portal Infobip para disparar.') : setSts('err', ok + ' criada(s), ' + fail + ' falhou', 'Verifique os logs no N8N.');
+  renderCriadas(criadas, startDateTime);
+  fail === 0 ? setSts('ok', ok + ' transmissão(ões) criada(s)!', 'Role abaixo e clique em “Iniciar” para disparar — ou “Ver gasto” antes.') : setSts('err', ok + ' criada(s), ' + fail + ' falhou', 'Verifique os logs no N8N.');
 }
 
 function setSts(type, title, msg) {
