@@ -3905,6 +3905,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     <div class="sb-item active" id="nav-campanhas" onclick="navTo('campanhas')">
       <span class="sb-icon">📤</span><span>Campanhas</span>
     </div>
+    <div class="sb-item" id="nav-disparos" onclick="navTo('disparos')">
+      <span class="sb-icon">🚀</span><span>Disparos</span>
+    </div>
   </div>
   <div class="sb-foot">
     <div class="sb-cfg" onclick="limparCfg()">
@@ -4043,6 +4046,25 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     </div>
   </div><!-- /page-campanhas -->
 
+  <!-- ══ PAGE: DISPAROS ══ -->
+  <div class="page" id="page-disparos">
+    <div class="card">
+      <div class="chead" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span>Campanhas na Infobip</span>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">
+          <select id="dispFiltro" onchange="renderDisparos()" style="width:auto">
+            <option value="DRAFT">Rascunhos (prontas para iniciar)</option>
+            <option value="ALL">Todas</option>
+          </select>
+          <button class="btn btn-ghost" onclick="carregarDisparos()"><span class="lbl">↻ Atualizar</span></button>
+          <button class="btn btn-green" id="btnIniciarTodas" onclick="lancarTodas(this)"><span class="lbl">🚀 Iniciar todos os rascunhos</span></button>
+        </span>
+      </div>
+      <div id="dispMsg" style="font-size:12px;color:var(--muted);margin-bottom:8px">Clique em Atualizar para carregar.</div>
+      <div id="dispList"></div>
+    </div>
+  </div><!-- /page-disparos -->
+
 
 
 </div><!-- /main -->
@@ -4090,6 +4112,7 @@ function navTo(page) {
   document.querySelectorAll('.sb-item').forEach(function(i) { i.classList.remove('active'); });
   document.getElementById('page-' + page).classList.add('active');
   document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'disparos') carregarDisparos();
 }
 
 // ─ State (campanhas) ─
@@ -4341,7 +4364,7 @@ async function criarCampanhas() {
   }
   btn.classList.remove('loading'); btn.disabled = false;
   renderCriadas(criadas, startDateTime);
-  fail === 0 ? setSts('ok', ok + ' transmissão(ões) criada(s)!', 'Role abaixo e clique em “Iniciar” para disparar — ou “Ver gasto” antes.') : setSts('err', ok + ' criada(s), ' + fail + ' falhou', 'Verifique os logs no N8N.');
+  fail === 0 ? setSts('ok', ok + ' transmissão(ões) criada(s)!', 'Rascunhos salvos na Infobip.') : setSts('err', ok + ' criada(s), ' + fail + ' falhou', 'Verifique os logs no N8N.');
 }
 
 function setSts(type, title, msg) {
@@ -4352,21 +4375,44 @@ function setSts(type, title, msg) {
 }
 
 function _esc(x){ return String(x==null?'':x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+var _ultimosCriados = [];
 function renderCriadas(lista, agendado){
   var box = document.getElementById('campList'); if (!box) return;
-  if (!lista || !lista.length) { box.innerHTML=''; return; }
-  var h = '<div class="card"><div class="chead">Campanhas criadas (' + lista.length + ')' + (agendado ? (' · agendadas para ' + new Date(agendado).toLocaleString('pt-BR')) : '') + '</div>';
-  if (lista.length > 1) { h += '<button class="btn btn-green" style="margin-bottom:10px" onclick="lancarTodas(this)"><span class="lbl">🚀 Iniciar todas</span></button>'; }
-  lista.forEach(function(c){
-    h += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border)">'
-      + '<div style="flex:1;min-width:160px"><div style="font-weight:600">' + _esc(c.nome) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted)">ID ' + c.id + ' · <span id="stat_' + c.id + '">DRAFT</span> · <span id="cost_' + c.id + '">—</span></div></div>'
-      + '<button class="btn btn-ghost" onclick="verGasto(\'' + c.id + '\',this)"><span class="lbl">💰 Ver gasto</span></button>'
-      + '<button class="btn btn-green" data-id="' + c.id + '" onclick="lancarCampanha(\'' + c.id + '\',this)"><span class="lbl">▶ Iniciar</span></button>'
+  _ultimosCriados = (lista || []).map(function(c){ return String(c.id); });
+  if (!_ultimosCriados.length) { box.innerHTML=''; return; }
+  box.innerHTML = '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">'
+    + '<div><div style="font-weight:600">' + _ultimosCriados.length + ' campanha(s) criada(s) como rascunho' + (agendado ? (' · agendadas para ' + new Date(agendado).toLocaleString('pt-BR')) : '') + '</div>'
+    + '<div style="font-size:12px;color:var(--muted)">Para conferir o gasto e iniciar, abra a aba Disparos.</div></div>'
+    + '<button class="btn btn-green" onclick="navTo(\'disparos\')"><span class="lbl">Ver em Disparos →</span></button></div>';
+}
+var _disparos = [];
+async function carregarDisparos(){
+  var msg = document.getElementById('dispMsg'), list = document.getElementById('dispList');
+  if (!BU || !PORTAL_USER) { msg.textContent = 'Configure a conta (usuário e senha do portal) para listar as campanhas.'; return; }
+  msg.textContent = 'Carregando campanhas...';
+  try {
+    var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'listCampaigns', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, size:100 }) });
+    var d = await r.json();
+    _disparos = d.campanhas || [];
+    renderDisparos();
+  } catch(e) { msg.textContent = 'Erro ao carregar as campanhas. Tente Atualizar.'; list.innerHTML=''; }
+}
+function renderDisparos(){
+  var msg = document.getElementById('dispMsg'), list = document.getElementById('dispList');
+  var f = (document.getElementById('dispFiltro') || {}).value || 'DRAFT';
+  var rows = _disparos.filter(function(c){ return f === 'ALL' || c.status === f; });
+  var cores = { DRAFT:'var(--muted)', IN_PROGRESS:'var(--green)', FINISHED:'var(--dim)', SCHEDULED:'#d9a400' };
+  msg.textContent = rows.length + (f === 'ALL' ? ' campanha(s)' : ' rascunho(s) pronto(s) para iniciar');
+  document.getElementById('btnIniciarTodas').style.display = rows.some(function(c){ return c.status === 'DRAFT'; }) ? '' : 'none';
+  list.innerHTML = rows.map(function(c){
+    var id = String(c.id), novo = _ultimosCriados.indexOf(id) >= 0;
+    return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 0;border-top:1px solid var(--border)">'
+      + '<div style="flex:1;min-width:180px"><div style="font-weight:600">' + _esc(c.nome) + (novo ? ' <span style="font-size:11px;color:var(--green)">· nova</span>' : '') + '</div>'
+      + '<div style="font-size:12px;color:var(--muted)">ID ' + id + ' · <span id="stat_' + id + '" style="color:' + (cores[c.status]||'var(--muted)') + '">' + _esc(c.status) + '</span> · <span id="cost_' + id + '">—</span></div></div>'
+      + '<button class="btn btn-ghost" onclick="verGasto(\'' + id + '\',this)"><span class="lbl">💰 Ver gasto</span></button>'
+      + (c.status === 'DRAFT' ? '<button class="btn btn-green" data-id="' + id + '" onclick="lancarCampanha(\'' + id + '\',this)"><span class="lbl">▶ Iniciar</span></button>' : '')
       + '</div>';
-  });
-  h += '</div>';
-  box.innerHTML = h;
+  }).join('') || '<div style="padding:10px 0;color:var(--muted);font-size:13px">Nenhuma campanha nesse filtro.</div>';
 }
 async function verGasto(id, btn){
   btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="lbl">...</span>';
@@ -4374,13 +4420,13 @@ async function verGasto(id, btn){
     var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'getCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
     var d = await r.json();
     var el = document.getElementById('cost_'+id);
-    if (el) { el.textContent = (d.preco!=null ? ('R$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : '') + (d.status ? (' · ' + d.status) : ''); }
+    if (el) { el.textContent = (d.preco!=null ? ('R$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : ''); }
     var st = document.getElementById('stat_'+id); if (st && d.status) st.textContent = d.status;
   } catch(e) { var el2 = document.getElementById('cost_'+id); if (el2) el2.textContent = 'erro ao consultar'; }
   btn.disabled = false; btn.innerHTML = old;
 }
-async function lancarCampanha(id, btn){
-  if (!confirm('Iniciar o envio desta campanha agora?')) return;
+async function lancarCampanha(id, btn, semConfirmar){
+  if (!semConfirmar && !confirm('Iniciar o envio desta campanha agora?')) return;
   btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="lbl">Iniciando...</span>';
   try {
     var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'launchCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
@@ -4390,7 +4436,12 @@ async function lancarCampanha(id, btn){
     else { btn.innerHTML = '<span class="lbl">❌ Erro</span>'; btn.disabled = false; }
   } catch(e) { btn.innerHTML = '<span class="lbl">❌ Erro</span>'; btn.disabled = false; }
 }
-function lancarTodas(btn){ document.querySelectorAll('#campList button[data-id]').forEach(function(b){ if (!b.disabled) b.click(); }); }
+async function lancarTodas(btn){
+  var bs = Array.prototype.slice.call(document.querySelectorAll('#dispList button[data-id]')).filter(function(b){ return !b.disabled; });
+  if (!bs.length) return;
+  if (!confirm('Iniciar ' + bs.length + ' campanha(s) agora?')) return;
+  for (var i = 0; i < bs.length; i++) { await lancarCampanha(bs[i].getAttribute('data-id'), bs[i], true); }
+}
 
 function goStep(n) {
   if (n === 3) buildVars(); if (n === 4) buildReview();
