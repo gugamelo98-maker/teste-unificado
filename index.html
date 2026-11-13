@@ -87,6 +87,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
     <button class="sb-item" id="nav-tpl" onclick="show('tpl')" title="Template"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg><span>Template</span></button>
     <button class="sb-item" id="nav-adm" onclick="show('adm')" title="Usuários"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5M17 4.5a3.5 3.5 0 0 1 0 7M18.5 14.7c2 .6 3.5 2.2 3.5 5.3"/></svg><span>Usuários</span></button>
     <button class="sb-item" id="nav-ib" onclick="show('ib')" title="Campanha"><svg viewBox="0 0 24 24"><path d="M21 3 3 10l7 3 3 7z"/></svg><span>Campanha</span></button>
+    <button class="sb-item" id="nav-disp" onclick="show('disp')" title="Disparos"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Disparos</span></button>
     <button class="sb-item" id="nav-pag" onclick="show('pag')" title="Pagamento em Massa"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><span>Pagamentos</span></button>
   </div>
   <div class="sb-foot">
@@ -317,6 +318,7 @@ function load(id) {
 }
 
 function show(id) {
+  var _disp = (id === 'disp'); if (_disp) id = 'ib';
   cur = id;
   if (id !== 'adm' && id !== 'pag') load(id);
   ['waba', 'tpl', 'ib'].forEach(function (k) {
@@ -330,6 +332,13 @@ function show(id) {
   document.getElementById('btn-conta').classList.toggle('on', id === 'ib');
   if (id === 'adm') carregaUsuarios();
   if (id === 'pag' && typeof pagSessao === 'function') pagSessao();
+  var _nd = document.getElementById('nav-disp'); if (_nd) _nd.classList.toggle('active', _disp);
+  if (_disp) document.getElementById('nav-ib').classList.remove('active');
+  if (id === 'ib') {
+    var _fi = document.getElementById('f-ib'), _pg = _disp ? 'disparos' : 'campanhas';
+    var _go = function () { try { _fi.contentWindow.navTo(_pg); return true; } catch (e) { return false; } };
+    if (!_go()) _fi.addEventListener('load', function h() { if (_go()) _fi.removeEventListener('load', h); });
+  }
 }
 
 // "Trocar conta" do Infobip (chama a mesma função original dentro do site)
@@ -4383,7 +4392,7 @@ function renderCriadas(lista, agendado){
   box.innerHTML = '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">'
     + '<div><div style="font-weight:600">' + _ultimosCriados.length + ' campanha(s) criada(s) como rascunho' + (agendado ? (' · agendadas para ' + new Date(agendado).toLocaleString('pt-BR')) : '') + '</div>'
     + '<div style="font-size:12px;color:var(--muted)">Para conferir o gasto e iniciar, abra a aba Disparos.</div></div>'
-    + '<button class="btn btn-green" onclick="navTo(\'disparos\')"><span class="lbl">Ver em Disparos →</span></button></div>';
+    + '<button class="btn btn-green" onclick="try{parent.show(\'disp\')}catch(e){navTo(\'disparos\')}"><span class="lbl">Ver em Disparos →</span></button></div>';
 }
 var _disparos = [];
 async function carregarDisparos(){
@@ -4420,7 +4429,7 @@ async function verGasto(id, btn){
     var r = await fetch(WH, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'getCampaign', baseUrl:BU, username:PORTAL_USER, password:PORTAL_PASS, campaignId:id }) });
     var d = await r.json();
     var el = document.getElementById('cost_'+id);
-    if (el) { el.textContent = (d.preco!=null ? ('R$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : ''); }
+    if (el) { el.textContent = (d.preco!=null ? ('US$ ' + Number(d.preco).toFixed(5).replace('.',',')) : 'sem preço') + (d.destinatarios_validos!=null ? (' · ' + d.destinatarios_validos + ' destinatário(s)') : ''); }
     var st = document.getElementById('stat_'+id); if (st && d.status) st.textContent = d.status;
   } catch(e) { var el2 = document.getElementById('cost_'+id); if (el2) el2.textContent = 'erro ao consultar'; }
   btn.disabled = false; btn.innerHTML = old;
